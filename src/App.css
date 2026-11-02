@@ -1,28 +1,252 @@
-.welcome {
-  width: min(100% - 2rem, 48rem);
-  margin: auto;
-  padding: 4rem 1.5rem;
+.game-page {
+  flex: 1;
+  width: min(100%, 1100px);
+  margin: 0 auto;
+  padding: clamp(1.25rem, 4vw, 3rem);
+}
+
+.game-header {
+  margin-bottom: 2rem;
   text-align: center;
 }
 
-.welcome__eyebrow {
-  margin: 0 0 1rem;
+.game-header__eyebrow {
+  margin: 0 0 0.5rem;
   color: #f2b84b;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
-.welcome h1 {
+.game-header h1 {
   margin: 0;
-  color: #fff;
-  font-size: clamp(2.5rem, 8vw, 5rem);
-  line-height: 1.05;
+  font-size: clamp(2rem, 6vw, 3.5rem);
 }
 
-.welcome__message {
-  margin: 1.5rem 0 0;
+.start-panel {
+  display: grid;
+  min-height: 50vh;
+  place-content: center;
+  justify-items: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.start-panel p {
+  max-width: 32rem;
   color: #c8c9d1;
   font-size: 1.1rem;
+}
+
+.scoreboard {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem 1.5rem;
+  border: 1px solid #393b49;
+  border-radius: 1rem;
+  background: #222430;
+}
+
+.scoreboard__player,
+.scoreboard__machine {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 700;
+}
+
+.scoreboard__player strong,
+.scoreboard__machine strong {
+  color: #f2b84b;
+  font-size: 1.5rem;
+}
+
+.scoreboard__machine {
+  justify-content: flex-end;
+}
+
+.scoreboard__round {
+  color: #c8c9d1;
+  text-align: center;
+}
+
+.battlefield {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.fighter-card {
+  overflow: hidden;
+  padding: 1rem;
+  border: 1px solid #393b49;
+  border-radius: 1rem;
+  background: #222430;
+}
+
+.fighter-card__owner {
+  margin: 0 0 0.75rem;
+  color: #f2b84b;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.fighter-card__image,
+.fighter-card__hidden {
+  display: grid;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 0.65rem;
+  object-fit: cover;
+}
+
+.fighter-card__hidden {
+  place-content: center;
+  justify-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(145deg, #37394b, #171821);
+  color: #f2b84b;
+}
+
+.fighter-card__hidden span {
+  font-size: 4rem;
+  font-weight: 800;
+}
+
+.fighter-card__hidden small {
+  color: #c8c9d1;
+}
+
+.fighter-card__name {
+  margin: 1rem 0;
+  font-size: 1.4rem;
+}
+
+.fighter-card__attributes {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.attribute-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #393b49;
+  border-radius: 0.5rem;
+  color: #e5e5eb;
+}
+
+.attribute-row input {
+  accent-color: #f2b84b;
+}
+
+.attribute-row strong {
+  margin-left: auto;
+  color: #fff;
+}
+
+.attribute-row.is-selected {
+  border-color: #f2b84b;
+  background: #33303a;
+}
+
+.battlefield__versus {
+  color: #f2b84b;
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.round-message,
+.final-message {
+  margin: 1.5rem auto 0;
+  text-align: center;
+}
+
+.round-message {
+  color: #f2b84b;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.final-message h2 {
+  margin-bottom: 0.5rem;
+}
+
+.final-message p {
+  color: #c8c9d1;
+}
+
+.game-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.game-button {
+  padding: 0.85rem 1.25rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: #f2b84b;
+  color: #171821;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.game-button:hover:not(:disabled) {
+  background: #ffd277;
+}
+
+.game-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (max-width: 700px) {
+  .battlefield {
+    grid-template-columns: 1fr;
+  }
+
+  .battlefield__versus {
+    margin: 0;
+    text-align: center;
+  }
+
+  .scoreboard {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .scoreboard__round {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+}
+
+.app-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  padding: 1.25rem;
+  border-top: 1px solid #393b49;
+  color: #c8c9d1;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.app-footer a {
+  color: #f2b84b;
+  text-decoration: none;
+}
+
+.app-footer a:hover {
+  text-decoration: underline;
 }
