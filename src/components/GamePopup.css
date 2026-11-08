@@ -1,0 +1,142 @@
+.game-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 75%);
+  animation: popup-fade-in 180ms ease-out;
+}
+
+.game-popup {
+  width: min(100%, 28rem);
+  padding: 2rem;
+  border: 2px solid #f2b84b;
+  border-radius: 1rem;
+  background: #222430;
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 0 2rem rgb(242 184 75 / 30%);
+  animation: popup-enter 250ms ease-out;
+}
+
+.game-popup--wild {
+  border-color: #ff6b5f;
+  box-shadow: 0 0 2rem rgb(255 75 55 / 40%);
+}
+
+.game-popup--machine-wild {
+  border-color: #ff3b30;
+  background: linear-gradient(145deg, #351b24, #222430 65%);
+  box-shadow: 0 0 2.5rem rgb(255 59 48 / 55%);
+  animation: popup-enter 250ms ease-out, machine-wild-pulse 900ms ease-in-out infinite alternate;
+}
+
+.game-popup--victory {
+  border-color: #62d98b;
+  box-shadow: 0 0 2rem rgb(98 217 139 / 35%);
+}
+
+.game-popup--defeat {
+  border-color: #ff6b5f;
+  box-shadow: 0 0 2rem rgb(255 75 55 / 35%);
+}
+
+.game-popup--tie {
+  border-color: #91a4c7;
+  box-shadow: 0 0 2rem rgb(145 164 199 / 30%);
+}
+
+.game-popup--special {
+  border-color: #b78cff;
+  box-shadow: 0 0 2rem rgb(183 140 255 / 40%);
+}
+
+.game-popup h2 {
+  margin: 0 0 0.75rem;
+  color: #f2b84b;
+  font-size: clamp(1.5rem, 6vw, 2.25rem);
+  text-transform: uppercase;
+}
+
+.game-popup--wild h2,
+.game-popup--machine-wild h2,
+.game-popup--defeat h2 {
+  color: #ff6b5f;
+}
+
+.game-popup--victory h2 {
+  color: #62d98b;
+}
+
+.game-popup--tie h2 {
+  color: #b8c8e5;
+}
+
+.game-popup--special h2 {
+  color: #c9a9ff;
+}
+
+.game-popup p {
+  margin: 0;
+  color: #e2e2e8;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.game-popup__action {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: #f2b84b;
+  color: #171821;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.game-popup__action:hover {
+  background: #ffd277;
+}
+
+.game-popup__action:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+@keyframes popup-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popup-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes machine-wild-pulse {
+  to {
+    box-shadow: 0 0 3rem rgb(255 59 48 / 75%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-popup-backdrop,
+  .game-popup {
+    animation: none;
+  }
+}

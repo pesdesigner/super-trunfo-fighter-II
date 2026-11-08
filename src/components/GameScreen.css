@@ -46,26 +46,6 @@
   font-weight: 900;
 }
 
-.round-message,
-.final-message {
-  margin: 1.5rem auto 0;
-  text-align: center;
-}
-
-.round-message {
-  color: #f2b84b;
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-.final-message h2 {
-  margin-bottom: 0.5rem;
-}
-
-.final-message p {
-  color: #c8c9d1;
-}
-
 .game-actions {
   display: flex;
   justify-content: center;
