@@ -11,12 +11,14 @@ import type { CardAttribute } from '../types/card'
 
 function useGame() {
   const [game, setGame] = useState<GameState | null>(null)
+  const [matchId, setMatchId] = useState(0)
   const [selectedAttribute, setSelectedAttribute] =
     useState<CardAttribute | null>(null)
 
   // 1. Inicia ou reinicia a partida e limpa a escolha anterior.
   function startMatch() {
     setGame(createGame(cards))
+    setMatchId((currentMatchId) => currentMatchId + 1)
     setSelectedAttribute(null)
   }
 
@@ -51,6 +53,7 @@ function useGame() {
 
   return {
     game,
+    matchId,
     selectedAttribute,
     totalRounds: game?.totalRounds ?? MAX_ROUNDS,
     startMatch,

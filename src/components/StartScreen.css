@@ -10,5 +10,6 @@
 .start-panel p {
   max-width: 32rem;
   color: #c8c9d1;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+  font-weight: 500;
 }

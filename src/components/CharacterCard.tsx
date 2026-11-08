@@ -12,73 +12,96 @@ const attributeLabels: Record<CardAttribute, string> = {
 interface CharacterCardProps {
   card: Card
   owner: string
-  hidden?: boolean
+  backLabel: 'PLAYER' | 'CPU'
+  flipped: boolean
   selectedAttribute: CardAttribute | null
+  resultAttribute?: CardAttribute | null
+  attributeResult?: 'winner' | 'loser' | 'tie' | null
   onSelectAttribute?: (attribute: CardAttribute) => void
+  onReveal?: () => void
 }
 
 function CharacterCard({
   card,
   owner,
-  hidden = false,
+  backLabel,
+  flipped,
   selectedAttribute,
+  resultAttribute = null,
+  attributeResult = null,
   onSelectAttribute,
+  onReveal,
 }: CharacterCardProps) {
   return (
     <article className="fighter-card">
-      <p className="fighter-card__owner">{owner}</p>
+      <div
+        className={`fighter-card__flip${flipped ? ' is-flipped' : ''}`}
+        role="group"
+        aria-label={`${owner}${flipped ? ` — ${card.name}` : ' — carta virada para baixo'}`}
+        tabIndex={onReveal ? 0 : undefined}
+        onMouseEnter={onReveal}
+        onFocus={onReveal}
+        onClick={onReveal}
+      >
+        <div className="fighter-card__inner">
+          <div className="fighter-card__face fighter-card__front" aria-hidden={!flipped}>
+            <p className="fighter-card__owner">{owner}</p>
 
-      {hidden ? (
-        <div
-          className="fighter-card__hidden"
-          role="img"
-          aria-label="Carta da máquina ainda não revelada"
-        >
-          <span>?</span>
-          <small>Carta oculta</small>
-        </div>
-      ) : (
-        <>
-          <img
-            className="fighter-card__image"
-            src={card.imageUrl}
-            alt={`Retrato de ${card.name}`}
-          />
+            <img
+              className="fighter-card__image"
+              src={card.imageUrl}
+              alt={`Retrato de ${card.name}`}
+            />
 
-          <h2 className="fighter-card__name">{card.name}</h2>
+            <h2 className="fighter-card__name">{card.name}</h2>
 
-          <div className="fighter-card__attributes">
-            {attributes.map((attribute) => {
-              const isSelected = selectedAttribute === attribute
-              const value = card.attributes[attribute]
-              const className = `attribute-row${isSelected ? ' is-selected' : ''}`
+            <div className="fighter-card__attributes">
+              {attributes.map((attribute) => {
+                const isSelected = selectedAttribute === attribute
+                const resultClass =
+                  resultAttribute === attribute && attributeResult
+                    ? ` is-${attributeResult}`
+                    : ''
+                const value = card.attributes[attribute]
+                const className = `attribute-row${isSelected ? ' is-selected' : ''}${resultClass}`
 
-              if (onSelectAttribute) {
+                if (onSelectAttribute) {
+                  return (
+                    <label className={className} key={attribute}>
+                      <input
+                        type="radio"
+                        name="player-attribute"
+                        value={attribute}
+                        checked={isSelected}
+                        disabled={!flipped}
+                        onChange={() => onSelectAttribute(attribute)}
+                      />
+                      <span>{attributeLabels[attribute]}</span>
+                      <strong>{value}</strong>
+                    </label>
+                  )
+                }
+
                 return (
-                  <label className={className} key={attribute}>
-                    <input
-                      type="radio"
-                      name="player-attribute"
-                      value={attribute}
-                      checked={isSelected}
-                      onChange={() => onSelectAttribute(attribute)}
-                    />
+                  <div className={className} key={attribute}>
                     <span>{attributeLabels[attribute]}</span>
                     <strong>{value}</strong>
-                  </label>
+                  </div>
                 )
-              }
-
-              return (
-                <div className={className} key={attribute}>
-                  <span>{attributeLabels[attribute]}</span>
-                  <strong>{value}</strong>
-                </div>
-              )
-            })}
+              })}
+            </div>
           </div>
-        </>
-      )}
+
+          <div
+            className="fighter-card__face fighter-card__back"
+            aria-hidden={flipped}
+          >
+            <img className="fighter-card__back-image" src="/images/cards/verso.png" alt="" />
+            <span className="fighter-card__back-frame" aria-hidden="true" />
+            <strong className="fighter-card__back-label">{backLabel}</strong>
+          </div>
+        </div>
+      </div>
     </article>
   )
 }

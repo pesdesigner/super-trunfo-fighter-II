@@ -1,12 +1,15 @@
 .app-footer {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.5rem 1rem;
   padding: 1.25rem;
   border-top: 1px solid #393b49;
+  background: rgb(23 24 33 / 88%);
   color: #c8c9d1;
-  font-size: 0.875rem;
+  font-size: 1rem;
   text-align: center;
 }
 

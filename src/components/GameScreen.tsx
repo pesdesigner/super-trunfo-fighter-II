@@ -12,6 +12,16 @@ interface PopupMessage {
   message: string
   autoCloseMs: number
   variant?: GamePopupVariant
+  beforeMachineReveal?: boolean
+}
+
+function hasCardRevealAnnouncement(game: GameState): boolean {
+  return (
+    game.playerCard.kind === 'wild' ||
+    game.machineCard.kind === 'wild' ||
+    game.playerCard.kind === 'special' ||
+    game.machineCard.kind === 'special'
+  )
 }
 
 function createPopupSequence(game: GameState): PopupMessage[] {
@@ -45,6 +55,7 @@ function createPopupSequence(game: GameState): PopupMessage[] {
           : 'A máquina recebeu a carta coringa Akuma!',
       autoCloseMs: 1800,
       variant: 'wild',
+      beforeMachineReveal: true,
     })
   }
 
@@ -63,6 +74,7 @@ function createPopupSequence(game: GameState): PopupMessage[] {
             : 'A máquina recebeu Kage após vencer três rodadas seguidas.',
       autoCloseMs: 2000,
       variant: 'special',
+      beforeMachineReveal: true,
     })
   }
 
@@ -139,28 +151,61 @@ interface PopupSequenceProps {
   game: GameState
   suspended: boolean
   onComplete?: () => void
+  onBeforeMachineReveal?: () => void
 }
 
 function PopupSequence({
   game,
   suspended,
   onComplete,
+  onBeforeMachineReveal,
 }: PopupSequenceProps) {
   const popupSequence = createPopupSequence(game)
   const [popupIndex, setPopupIndex] = useState(0)
+  const [waitingForMachineReveal, setWaitingForMachineReveal] = useState(false)
+  const activePopup = popupSequence[popupIndex]
+
+  useEffect(() => {
+    if (!waitingForMachineReveal) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setWaitingForMachineReveal(false)
+      setPopupIndex((current) => current + 1)
+    }, 650)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [waitingForMachineReveal])
 
   const closeActivePopup = useCallback(() => {
+    const nextPopup = popupSequence[popupIndex + 1]
+    const shouldRevealMachine =
+      activePopup?.beforeMachineReveal && !nextPopup?.beforeMachineReveal
+
+    if (shouldRevealMachine) {
+      onBeforeMachineReveal?.()
+      if (nextPopup) {
+        setWaitingForMachineReveal(true)
+        return
+      }
+    }
+
     if (popupIndex === popupSequence.length - 1 && onComplete) {
       onComplete()
       return
     }
 
     setPopupIndex((current) => current + 1)
-  }, [onComplete, popupIndex, popupSequence.length])
+  }, [
+    activePopup?.beforeMachineReveal,
+    onBeforeMachineReveal,
+    onComplete,
+    popupIndex,
+    popupSequence,
+  ])
 
-  const activePopup = popupSequence[popupIndex]
-
-  if (!activePopup || suspended) {
+  if (!activePopup || suspended || waitingForMachineReveal) {
     return null
   }
 
@@ -213,12 +258,14 @@ interface FinishedGameFlowProps {
   game: GameState
   onStartNewGame: () => void
   onReturnToStart: () => void
+  onBeforeMachineReveal: () => void
 }
 
 function FinishedGameFlow({
   game,
   onStartNewGame,
   onReturnToStart,
+  onBeforeMachineReveal,
 }: FinishedGameFlowProps) {
   const [stage, setStage] = useState<'result' | 'continue' | 'game-over'>(
     'result',
@@ -236,6 +283,7 @@ function FinishedGameFlow({
         game={game}
         suspended={false}
         onComplete={showContinuePrompt}
+        onBeforeMachineReveal={onBeforeMachineReveal}
       />
     )
   }
@@ -281,15 +329,32 @@ function GameScreen({
   onReturnToStart,
 }: GameScreenProps) {
   const [showMachineTurnPopup, setShowMachineTurnPopup] = useState(false)
+  const [machineRevealed, setMachineRevealed] = useState(false)
+  const [revealedPlayerRound, setRevealedPlayerRound] = useState<number | null>(
+    null,
+  )
 
   const startMachineTurn = useCallback(() => {
+    setMachineRevealed(false)
     setShowMachineTurnPopup(true)
   }, [])
 
   const finishMachineTurn = useCallback(() => {
     setShowMachineTurnPopup(false)
+    if (!hasCardRevealAnnouncement(game)) {
+      setMachineRevealed(true)
+    }
     onConfirmPlay()
-  }, [onConfirmPlay])
+  }, [game, onConfirmPlay])
+
+  const revealMachineCard = useCallback(() => {
+    setMachineRevealed(true)
+  }, [])
+
+  const advanceToNextRound = useCallback(() => {
+    setMachineRevealed(false)
+    onAdvanceRound()
+  }, [onAdvanceRound])
 
   return (
     <>
@@ -313,9 +378,26 @@ function GameScreen({
         <CharacterCard
           card={game.playerCard}
           owner="Sua carta"
+          backLabel="PLAYER"
+          flipped={revealedPlayerRound === game.roundNumber}
           selectedAttribute={selectedAttribute}
+          resultAttribute={game.lastResult?.attribute}
+          attributeResult={
+            game.lastResult?.outcome === 'tie'
+              ? 'tie'
+              : game.lastResult?.outcome === 'player'
+                ? 'winner'
+                : game.lastResult?.outcome === 'machine'
+                  ? 'loser'
+                  : null
+          }
           onSelectAttribute={
             game.phase === 'choosing' ? onSelectAttribute : undefined
+          }
+          onReveal={
+            game.phase === 'choosing'
+              ? () => setRevealedPlayerRound(game.roundNumber)
+              : undefined
           }
         />
 
@@ -326,8 +408,19 @@ function GameScreen({
         <CharacterCard
           card={game.machineCard}
           owner="Máquina"
-          hidden={game.phase === 'choosing'}
+          backLabel="CPU"
+          flipped={machineRevealed}
           selectedAttribute={null}
+          resultAttribute={game.lastResult?.attribute}
+          attributeResult={
+            game.lastResult?.outcome === 'tie'
+              ? 'tie'
+              : game.lastResult?.outcome === 'machine'
+                ? 'winner'
+                : game.lastResult?.outcome === 'player'
+                  ? 'loser'
+                  : null
+          }
         />
       </section>
 
@@ -344,7 +437,7 @@ function GameScreen({
         {game.phase === 'round-complete' && (
           <GameButton
             className="game-button--next-round"
-            onClick={onAdvanceRound}
+            onClick={advanceToNextRound}
           >
             Próxima rodada
           </GameButton>
@@ -358,12 +451,14 @@ function GameScreen({
           game={game}
           onStartNewGame={onStartNewGame}
           onReturnToStart={onReturnToStart}
+          onBeforeMachineReveal={revealMachineCard}
         />
       ) : (
         <PopupSequence
           key={`${game.roundNumber}-${game.phase}-${game.lastResult?.attribute ?? 'pending'}`}
           game={game}
           suspended={showMachineTurnPopup}
+          onBeforeMachineReveal={revealMachineCard}
         />
       )}
       {showMachineTurnPopup && (

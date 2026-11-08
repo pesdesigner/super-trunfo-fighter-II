@@ -8,6 +8,7 @@ import './App.css'
 function App() {
   const {
     game,
+    matchId,
     selectedAttribute,
     totalRounds,
     startMatch,
@@ -19,13 +20,14 @@ function App() {
 
   return (
     <>
-      <main className="game-page">
+      <main className={`game-page ${game ? 'game-page--playing' : 'game-page--start'}`}>
         <GameHeader />
 
         {!game ? (
           <StartScreen onStart={startMatch} />
         ) : (
           <GameScreen
+            key={matchId}
             game={game}
             selectedAttribute={selectedAttribute}
             totalRounds={totalRounds}
