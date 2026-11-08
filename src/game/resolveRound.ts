@@ -26,7 +26,7 @@ export function resolveRound(
       playerValue,
       machineValue,
       outcome: 'player',
-      playerPoints: 3,
+      playerPoints: playerCard.kind === 'wild' ? 4 : 3,
       machinePoints: 0,
     }
   }
@@ -38,7 +38,7 @@ export function resolveRound(
       machineValue,
       outcome: 'machine',
       playerPoints: 0,
-      machinePoints: 3,
+      machinePoints: machineCard.kind === 'wild' ? 4 : 3,
     }
   }
 

@@ -11,6 +11,7 @@ function App() {
     selectedAttribute,
     totalRounds,
     startMatch,
+    returnToStart,
     selectAttribute,
     confirmPlay,
     advanceRound,
@@ -31,7 +32,8 @@ function App() {
             onSelectAttribute={selectAttribute}
             onConfirmPlay={confirmPlay}
             onAdvanceRound={advanceRound}
-            onRestart={startMatch}
+            onStartNewGame={startMatch}
+            onReturnToStart={returnToStart}
           />
         )}
       </main>

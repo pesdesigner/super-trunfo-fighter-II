@@ -1,12 +1,16 @@
 .game-button {
   padding: 0.85rem 1.25rem;
-  border: 0;
+  border: 2px solid transparent;
   border-radius: 0.6rem;
   background: #f2b84b;
   color: #171821;
   font: inherit;
   font-weight: 800;
   cursor: pointer;
+}
+
+.game-button--next-round {
+  animation: next-round-border 800ms steps(2, start) infinite;
 }
 
 .game-button:hover:not(:disabled) {
@@ -16,4 +20,19 @@
 .game-button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+@keyframes next-round-border {
+  to {
+    border-color: #fff;
+    box-shadow: 0 0 0.8rem rgb(255 255 255 / 75%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-button--next-round {
+    animation: none;
+    border-color: #fff;
+    box-shadow: 0 0 0.5rem rgb(255 255 255 / 55%);
+  }
 }

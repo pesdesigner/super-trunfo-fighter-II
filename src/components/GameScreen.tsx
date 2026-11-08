@@ -1,8 +1,263 @@
+import { useCallback, useEffect, useState } from 'react'
 import type { CardAttribute } from '../types/card'
 import type { GameState } from '../game/game'
 import CharacterCard from './CharacterCard'
 import GameButton from './GameButton'
+import GamePopup from './GamePopup'
+import type { GamePopupVariant } from './GamePopup'
 import './GameScreen.css'
+
+interface PopupMessage {
+  title: string
+  message: string
+  autoCloseMs: number
+  variant?: GamePopupVariant
+}
+
+function createPopupSequence(game: GameState): PopupMessage[] {
+  if (game.phase === 'choosing' && game.lastResult === null) {
+    return [
+      {
+        title: `Round ${game.roundNumber} — Fight!`,
+        message: 'Prepare-se para a próxima batalha.',
+        autoCloseMs: 1400,
+      },
+      {
+        title: 'Sua vez!',
+        message: 'Escolha um atributo da sua carta.',
+        autoCloseMs: 1800,
+      },
+    ]
+  }
+
+  if (!game.lastResult) {
+    return []
+  }
+
+  const messages: PopupMessage[] = []
+
+  if (game.playerCard.kind === 'wild' || game.machineCard.kind === 'wild') {
+    messages.push({
+      title: 'Carta coringa!',
+      message:
+        game.playerCard.kind === 'wild'
+          ? 'Você recebeu a carta coringa Akuma!'
+          : 'A máquina recebeu a carta coringa Akuma!',
+      autoCloseMs: 1800,
+      variant: 'wild',
+    })
+  }
+
+  if (
+    game.playerCard.kind === 'special' ||
+    game.machineCard.kind === 'special'
+  ) {
+    messages.push({
+      title: 'Kage entrou na arena!',
+      message:
+        game.playerCard.kind === 'special' &&
+        game.machineCard.kind === 'special'
+          ? 'Você e a máquina receberam Kage após três vitórias seguidas.'
+          : game.playerCard.kind === 'special'
+            ? 'Você recebeu Kage após vencer três rodadas seguidas.'
+            : 'A máquina recebeu Kage após vencer três rodadas seguidas.',
+      autoCloseMs: 2000,
+      variant: 'special',
+    })
+  }
+
+  if (game.lastResult.outcome === 'tie') {
+    messages.push({
+      title: 'Empate!',
+      message: 'Cada participante ganhou 1 ponto.',
+      autoCloseMs: 1800,
+    })
+  } else {
+    const playerWon = game.lastResult.outcome === 'player'
+    const winnerCard = playerWon ? game.playerCard : game.machineCard
+    const points = playerWon
+      ? game.lastResult.playerPoints
+      : game.lastResult.machinePoints
+    const isMachineWildWin = !playerWon && winnerCard.kind === 'wild'
+
+    messages.push({
+      title: playerWon ? 'Você venceu!' : 'Vitória da máquina!',
+      message: isMachineWildWin
+        ? 'A máquina liberou o poder de Akuma e conquistou 4 pontos!'
+        : playerWon && winnerCard.kind === 'wild'
+          ? 'Akuma dominou a rodada! Você ganhou 4 pontos!'
+          : `${playerWon ? 'Você venceu' : 'A máquina venceu'} a rodada e ganhou ${points} pontos.`,
+      autoCloseMs: 2000,
+      variant: isMachineWildWin ? 'machine-wild' : undefined,
+    })
+  }
+
+  if (game.playerKagePending || game.machineKagePending) {
+    messages.push({
+      title: 'Kage conquistado!',
+      message:
+        game.playerKagePending && game.machineKagePending
+          ? 'Você e a máquina ganharam Kage para a próxima rodada!'
+          : game.playerKagePending
+            ? 'Você venceu três rodadas seguidas e ganhou Kage para a próxima rodada!'
+            : 'A máquina venceu três rodadas seguidas e ganhou Kage para a próxima rodada!',
+      autoCloseMs: 2200,
+      variant: 'special',
+    })
+  }
+
+  if (game.phase === 'finished') {
+    const outcome =
+      game.playerScore === game.machineScore
+        ? 'tie'
+        : game.playerScore > game.machineScore
+          ? 'victory'
+          : 'defeat'
+
+    messages.push({
+      title:
+        outcome === 'victory'
+          ? 'Você venceu a partida!'
+          : outcome === 'defeat'
+            ? 'Você perdeu!'
+            : 'Partida empatada!',
+      message:
+        `${outcome === 'victory'
+          ? 'Parabéns, campeão! A arena é sua.'
+          : outcome === 'defeat'
+            ? 'A máquina venceu desta vez. Tente novamente!'
+            : 'Os dois lutadores terminaram com a mesma pontuação.'} Placar final — Jogador ${game.playerScore} X ${game.machineScore} CPU`,
+      autoCloseMs: 4000,
+      variant: outcome,
+    })
+  }
+
+  return messages
+}
+
+interface PopupSequenceProps {
+  game: GameState
+  suspended: boolean
+  onComplete?: () => void
+}
+
+function PopupSequence({
+  game,
+  suspended,
+  onComplete,
+}: PopupSequenceProps) {
+  const popupSequence = createPopupSequence(game)
+  const [popupIndex, setPopupIndex] = useState(0)
+
+  const closeActivePopup = useCallback(() => {
+    if (popupIndex === popupSequence.length - 1 && onComplete) {
+      onComplete()
+      return
+    }
+
+    setPopupIndex((current) => current + 1)
+  }, [onComplete, popupIndex, popupSequence.length])
+
+  const activePopup = popupSequence[popupIndex]
+
+  if (!activePopup || suspended) {
+    return null
+  }
+
+  return (
+    <GamePopup
+      title={activePopup.title}
+      message={activePopup.message}
+      variant={activePopup.variant}
+      autoCloseMs={activePopup.autoCloseMs}
+      onClose={closeActivePopup}
+    />
+  )
+}
+
+interface ContinueCountdownPopupProps {
+  onContinue: () => void
+  onTimeout: () => void
+}
+
+function ContinueCountdownPopup({
+  onContinue,
+  onTimeout,
+}: ContinueCountdownPopupProps) {
+  const [secondsRemaining, setSecondsRemaining] = useState(10)
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setSecondsRemaining((seconds) => Math.max(0, seconds - 1))
+    }, 1000)
+    const timeoutId = window.setTimeout(onTimeout, 10000)
+
+    return () => {
+      window.clearInterval(intervalId)
+      window.clearTimeout(timeoutId)
+    }
+  }, [onTimeout])
+
+  return (
+    <GamePopup
+      title="Continuar?"
+      message={`Nova partida em ${secondsRemaining} segundos...`}
+      actionLabel="Continuar"
+      onAction={onContinue}
+      onClose={onTimeout}
+    />
+  )
+}
+
+interface FinishedGameFlowProps {
+  game: GameState
+  onStartNewGame: () => void
+  onReturnToStart: () => void
+}
+
+function FinishedGameFlow({
+  game,
+  onStartNewGame,
+  onReturnToStart,
+}: FinishedGameFlowProps) {
+  const [stage, setStage] = useState<'result' | 'continue' | 'game-over'>(
+    'result',
+  )
+  const showContinuePrompt = useCallback(() => {
+    setStage('continue')
+  }, [])
+  const showGameOver = useCallback(() => {
+    setStage('game-over')
+  }, [])
+
+  if (stage === 'result') {
+    return (
+      <PopupSequence
+        game={game}
+        suspended={false}
+        onComplete={showContinuePrompt}
+      />
+    )
+  }
+
+  if (stage === 'continue') {
+    return (
+      <ContinueCountdownPopup
+        onContinue={onStartNewGame}
+        onTimeout={showGameOver}
+      />
+    )
+  }
+
+  return (
+    <GamePopup
+      title="GAME OVER"
+      message="Voltando para a tela inicial..."
+      autoCloseMs={2200}
+      onClose={onReturnToStart}
+    />
+  )
+}
 
 interface GameScreenProps {
   game: GameState
@@ -11,7 +266,8 @@ interface GameScreenProps {
   onSelectAttribute: (attribute: CardAttribute) => void
   onConfirmPlay: () => void
   onAdvanceRound: () => void
-  onRestart: () => void
+  onStartNewGame: () => void
+  onReturnToStart: () => void
 }
 
 function GameScreen({
@@ -21,8 +277,20 @@ function GameScreen({
   onSelectAttribute,
   onConfirmPlay,
   onAdvanceRound,
-  onRestart,
+  onStartNewGame,
+  onReturnToStart,
 }: GameScreenProps) {
+  const [showMachineTurnPopup, setShowMachineTurnPopup] = useState(false)
+
+  const startMachineTurn = useCallback(() => {
+    setShowMachineTurnPopup(true)
+  }, [])
+
+  const finishMachineTurn = useCallback(() => {
+    setShowMachineTurnPopup(false)
+    onConfirmPlay()
+  }, [onConfirmPlay])
+
   return (
     <>
       <section className="scoreboard" aria-label="Placar da partida">
@@ -63,34 +331,10 @@ function GameScreen({
         />
       </section>
 
-      {game.lastResult && (
-        <section className="round-message" aria-live="polite">
-          {game.lastResult.outcome === 'player' &&
-            'Você venceu a rodada e ganhou 3 pontos!'}
-          {game.lastResult.outcome === 'machine' &&
-            'A máquina venceu a rodada e ganhou 3 pontos.'}
-          {game.lastResult.outcome === 'tie' &&
-            'Empate! Cada participante ganhou 1 ponto.'}
-        </section>
-      )}
-
-      {game.phase === 'finished' && (
-        <section className="final-message" aria-live="polite">
-          <h2>Fim de jogo</h2>
-          <p>
-            {game.playerScore === game.machineScore
-              ? 'A partida terminou empatada.'
-              : game.playerScore > game.machineScore
-                ? 'Você venceu a partida!'
-                : 'A máquina venceu a partida.'}
-          </p>
-        </section>
-      )}
-
       <div className="game-actions">
         {game.phase === 'choosing' && (
           <GameButton
-            onClick={onConfirmPlay}
+            onClick={startMachineTurn}
             disabled={!selectedAttribute}
           >
             Confirmar jogada
@@ -98,17 +342,38 @@ function GameScreen({
         )}
 
         {game.phase === 'round-complete' && (
-          <GameButton onClick={onAdvanceRound}>
+          <GameButton
+            className="game-button--next-round"
+            onClick={onAdvanceRound}
+          >
             Próxima rodada
           </GameButton>
         )}
 
-        {game.phase === 'finished' && (
-          <GameButton onClick={onRestart}>
-            Jogar novamente
-          </GameButton>
-        )}
       </div>
+
+      {game.phase === 'finished' ? (
+        <FinishedGameFlow
+          key={`${game.roundNumber}-${game.playerScore}-${game.machineScore}`}
+          game={game}
+          onStartNewGame={onStartNewGame}
+          onReturnToStart={onReturnToStart}
+        />
+      ) : (
+        <PopupSequence
+          key={`${game.roundNumber}-${game.phase}-${game.lastResult?.attribute ?? 'pending'}`}
+          game={game}
+          suspended={showMachineTurnPopup}
+        />
+      )}
+      {showMachineTurnPopup && (
+        <GamePopup
+          title="Vez da máquina!"
+          message="A máquina revela sua carta. Vamos ver quem venceu!"
+          autoCloseMs={1600}
+          onClose={finishMachineTurn}
+        />
+      )}
     </>
   )
 }

@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import { cards } from '../data/cards'
-import { createGame, playRound, startNextRound } from '../game/game'
+import {
+  createGame,
+  MAX_ROUNDS,
+  playRound,
+  startNextRound,
+} from '../game/game'
 import type { GameState } from '../game/game'
 import type { CardAttribute } from '../types/card'
 
@@ -12,6 +17,11 @@ function useGame() {
   // 1. Inicia ou reinicia a partida e limpa a escolha anterior.
   function startMatch() {
     setGame(createGame(cards))
+    setSelectedAttribute(null)
+  }
+
+  function returnToStart() {
+    setGame(null)
     setSelectedAttribute(null)
   }
 
@@ -42,8 +52,9 @@ function useGame() {
   return {
     game,
     selectedAttribute,
-    totalRounds: Math.floor(cards.length / 2),
+    totalRounds: game?.totalRounds ?? MAX_ROUNDS,
     startMatch,
+    returnToStart,
     selectAttribute,
     confirmPlay,
     advanceRound,
