@@ -1,0 +1,76 @@
+.fighter-card {
+  overflow: hidden;
+  padding: 1rem;
+  border: 1px solid #393b49;
+  border-radius: 1rem;
+  background: #222430;
+}
+
+.fighter-card__owner {
+  margin: 0 0 0.75rem;
+  color: #f2b84b;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.fighter-card__image,
+.fighter-card__hidden {
+  display: grid;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 0.65rem;
+  object-fit: cover;
+}
+
+.fighter-card__hidden {
+  place-content: center;
+  justify-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(145deg, #37394b, #171821);
+  color: #f2b84b;
+}
+
+.fighter-card__hidden span {
+  font-size: 4rem;
+  font-weight: 800;
+}
+
+.fighter-card__hidden small {
+  color: #c8c9d1;
+}
+
+.fighter-card__name {
+  margin: 1rem 0;
+  font-size: 1.4rem;
+}
+
+.fighter-card__attributes {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.attribute-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #393b49;
+  border-radius: 0.5rem;
+  color: #e5e5eb;
+}
+
+.attribute-row input {
+  accent-color: #f2b84b;
+}
+
+.attribute-row strong {
+  margin-left: auto;
+  color: #fff;
+}
+
+.attribute-row.is-selected {
+  border-color: #f2b84b;
+  background: #33303a;
+}
