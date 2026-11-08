@@ -11,6 +11,7 @@ export interface RoundResult {
   machinePoints: number
 }
 
+// 4. Compara o atributo escolhido e define o vencedor e os pontos da rodada.
 export function resolveRound(
   playerCard: Card,
   machineCard: Card,

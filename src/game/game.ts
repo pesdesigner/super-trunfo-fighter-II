@@ -15,6 +15,7 @@ export interface GameState {
   lastResult: RoundResult | null
 }
 
+// 1. Embaralha o baralho e prepara as cartas da primeira rodada.
 export function createGame(
   cards: readonly Card[],
   random: () => number = Math.random,
@@ -36,6 +37,7 @@ export function createGame(
   }
 }
 
+// 4. Usa o resultado da comparação para atualizar a pontuação e a rodada.
 export function playRound(
   game: GameState,
   attribute: CardAttribute,
@@ -59,6 +61,7 @@ export function playRound(
   }
 }
 
+// 5. Distribui as cartas seguintes e prepara o estado para outra escolha.
 export function startNextRound(game: GameState): GameState {
   if (game.phase !== 'round-complete') {
     return game
