@@ -1,0 +1,93 @@
+.scoreboard {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem 1.5rem;
+  border: 1px solid #393b49;
+  border-radius: 1rem;
+  background: #222430;
+}
+
+.scoreboard__player,
+.scoreboard__machine {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 700;
+}
+
+.scoreboard__player strong,
+.scoreboard__machine strong {
+  color: #f2b84b;
+  font-size: 1.5rem;
+}
+
+.scoreboard__machine {
+  justify-content: flex-end;
+}
+
+.scoreboard__round {
+  color: #c8c9d1;
+  text-align: center;
+}
+
+.battlefield {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.battlefield__versus {
+  color: #f2b84b;
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.round-message,
+.final-message {
+  margin: 1.5rem auto 0;
+  text-align: center;
+}
+
+.round-message {
+  color: #f2b84b;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.final-message h2 {
+  margin-bottom: 0.5rem;
+}
+
+.final-message p {
+  color: #c8c9d1;
+}
+
+.game-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 700px) {
+  .battlefield {
+    grid-template-columns: 1fr;
+  }
+
+  .battlefield__versus {
+    margin: 0;
+    text-align: center;
+  }
+
+  .scoreboard {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .scoreboard__round {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+}

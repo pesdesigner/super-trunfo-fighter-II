@@ -1,6 +1,6 @@
 # Super Trunfo Fighter II
 
-**Versão:** 0.1.0
+**Versão:** 0.1.1
 
 Renovação em React do jogo Super Trunfo com personagens de Street Fighter.
 
@@ -20,6 +20,13 @@ Renovação em React do jogo Super Trunfo com personagens de Street Fighter.
 - Vitest
 - ESLint
 
+## Organização do código
+
+- `src/components/`: componentes de interface, como cabeçalho, cartas e telas.
+- `src/hooks/useGame.ts`: estado da partida e ações da interface.
+- `src/game/`: regras, distribuição de cartas e resolução das rodadas.
+- `src/data/`: cartas disponíveis no jogo.
+
 ## Como executar
 
 Requisitos: Node.js e npm.
@@ -27,3 +34,11 @@ Requisitos: Node.js e npm.
 ```bash
 npm install
 npm run dev
+```
+
+## Validação
+
+```bash
+npm run build
+npm test
+```

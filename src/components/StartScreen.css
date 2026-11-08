@@ -1,0 +1,14 @@
+.start-panel {
+  display: grid;
+  min-height: 50vh;
+  place-content: center;
+  justify-items: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.start-panel p {
+  max-width: 32rem;
+  color: #c8c9d1;
+  font-size: 1.1rem;
+}
