@@ -15,13 +15,8 @@ interface PopupMessage {
   beforeMachineReveal?: boolean
 }
 
-function hasCardRevealAnnouncement(game: GameState): boolean {
-  return (
-    game.playerCard.kind === 'wild' ||
-    game.machineCard.kind === 'wild' ||
-    game.playerCard.kind === 'special' ||
-    game.machineCard.kind === 'special'
-  )
+function hasMachineCardRevealAnnouncement(game: GameState): boolean {
+  return game.machineCard.kind === 'wild' || game.machineCard.kind === 'special'
 }
 
 function createPopupSequence(game: GameState): PopupMessage[] {
@@ -30,12 +25,12 @@ function createPopupSequence(game: GameState): PopupMessage[] {
       {
         title: `Round ${game.roundNumber} — Fight!`,
         message: 'Prepare-se para a próxima batalha.',
-        autoCloseMs: 1400,
+        autoCloseMs: 1800,
       },
       {
         title: 'Sua vez!',
         message: 'Escolha um atributo da sua carta.',
-        autoCloseMs: 1800,
+        autoCloseMs: 2000,
       },
     ]
   }
@@ -46,33 +41,21 @@ function createPopupSequence(game: GameState): PopupMessage[] {
 
   const messages: PopupMessage[] = []
 
-  if (game.playerCard.kind === 'wild' || game.machineCard.kind === 'wild') {
+  if (game.machineCard.kind === 'wild') {
     messages.push({
       title: 'Carta coringa!',
-      message:
-        game.playerCard.kind === 'wild'
-          ? 'Você recebeu a carta coringa Akuma!'
-          : 'A máquina recebeu a carta coringa Akuma!',
-      autoCloseMs: 1800,
+      message: 'A máquina recebeu a carta coringa Akuma!',
+      autoCloseMs: 3000,
       variant: 'wild',
       beforeMachineReveal: true,
     })
   }
 
-  if (
-    game.playerCard.kind === 'special' ||
-    game.machineCard.kind === 'special'
-  ) {
+  if (game.machineCard.kind === 'special') {
     messages.push({
       title: 'Kage entrou na arena!',
-      message:
-        game.playerCard.kind === 'special' &&
-        game.machineCard.kind === 'special'
-          ? 'Você e a máquina receberam Kage após três vitórias seguidas.'
-          : game.playerCard.kind === 'special'
-            ? 'Você recebeu Kage após vencer três rodadas seguidas.'
-            : 'A máquina recebeu Kage após vencer três rodadas seguidas.',
-      autoCloseMs: 2000,
+      message: 'A máquina recebeu Kage após vencer três rodadas seguidas.',
+      autoCloseMs: 3000,
       variant: 'special',
       beforeMachineReveal: true,
     })
@@ -82,7 +65,7 @@ function createPopupSequence(game: GameState): PopupMessage[] {
     messages.push({
       title: 'Empate!',
       message: 'Cada participante ganhou 1 ponto.',
-      autoCloseMs: 1800,
+      autoCloseMs: 2800,
     })
   } else {
     const playerWon = game.lastResult.outcome === 'player'
@@ -99,21 +82,16 @@ function createPopupSequence(game: GameState): PopupMessage[] {
         : playerWon && winnerCard.kind === 'wild'
           ? 'Akuma dominou a rodada! Você ganhou 4 pontos!'
           : `${playerWon ? 'Você venceu' : 'A máquina venceu'} a rodada e ganhou ${points} pontos.`,
-      autoCloseMs: 2000,
+      autoCloseMs: 3000,
       variant: isMachineWildWin ? 'machine-wild' : undefined,
     })
   }
 
-  if (game.playerKagePending || game.machineKagePending) {
+  if (game.machineKagePending) {
     messages.push({
       title: 'Kage conquistado!',
-      message:
-        game.playerKagePending && game.machineKagePending
-          ? 'Você e a máquina ganharam Kage para a próxima rodada!'
-          : game.playerKagePending
-            ? 'Você venceu três rodadas seguidas e ganhou Kage para a próxima rodada!'
-            : 'A máquina venceu três rodadas seguidas e ganhou Kage para a próxima rodada!',
-      autoCloseMs: 2200,
+      message: 'A máquina venceu três rodadas seguidas e ganhou Kage para a próxima rodada!',
+      autoCloseMs: 3000,
       variant: 'special',
     })
   }
@@ -139,7 +117,7 @@ function createPopupSequence(game: GameState): PopupMessage[] {
           : outcome === 'defeat'
             ? 'A máquina venceu desta vez. Tente novamente!'
             : 'Os dois lutadores terminaram com a mesma pontuação.'} Placar final — Jogador ${game.playerScore} X ${game.machineScore} CPU`,
-      autoCloseMs: 4000,
+      autoCloseMs: 1800,
       variant: outcome,
     })
   }
@@ -329,6 +307,8 @@ function GameScreen({
   onReturnToStart,
 }: GameScreenProps) {
   const [showMachineTurnPopup, setShowMachineTurnPopup] = useState(false)
+  const [playerRevealPopup, setPlayerRevealPopup] =
+    useState<PopupMessage | null>(null)
   const [machineRevealed, setMachineRevealed] = useState(false)
   const [revealedPlayerRound, setRevealedPlayerRound] = useState<number | null>(
     null,
@@ -341,11 +321,39 @@ function GameScreen({
 
   const finishMachineTurn = useCallback(() => {
     setShowMachineTurnPopup(false)
-    if (!hasCardRevealAnnouncement(game)) {
+    if (!hasMachineCardRevealAnnouncement(game)) {
       setMachineRevealed(true)
     }
     onConfirmPlay()
   }, [game, onConfirmPlay])
+
+  const revealPlayerCard = useCallback(() => {
+    if (revealedPlayerRound === game.roundNumber) {
+      return
+    }
+
+    setRevealedPlayerRound(game.roundNumber)
+
+    if (game.playerCard.kind === 'wild') {
+      setPlayerRevealPopup({
+        title: 'Carta coringa!',
+        message: 'Você recebeu a carta coringa Akuma!',
+        autoCloseMs: 3000,
+        variant: 'wild',
+      })
+    } else if (game.playerCard.kind === 'special') {
+      setPlayerRevealPopup({
+        title: 'Kage conquistado!',
+        message: 'Você venceu três rodadas seguidas e ganhou Kage para a próxima rodada!',
+        autoCloseMs: 3000,
+        variant: 'special',
+      })
+    }
+  }, [game.playerCard, game.roundNumber, revealedPlayerRound])
+
+  const closePlayerRevealPopup = useCallback(() => {
+    setPlayerRevealPopup(null)
+  }, [])
 
   const revealMachineCard = useCallback(() => {
     setMachineRevealed(true)
@@ -395,9 +403,7 @@ function GameScreen({
             game.phase === 'choosing' ? onSelectAttribute : undefined
           }
           onReveal={
-            game.phase === 'choosing'
-              ? () => setRevealedPlayerRound(game.roundNumber)
-              : undefined
+            game.phase === 'choosing' ? revealPlayerCard : undefined
           }
         />
 
@@ -457,8 +463,17 @@ function GameScreen({
         <PopupSequence
           key={`${game.roundNumber}-${game.phase}-${game.lastResult?.attribute ?? 'pending'}`}
           game={game}
-          suspended={showMachineTurnPopup}
+          suspended={showMachineTurnPopup || playerRevealPopup !== null}
           onBeforeMachineReveal={revealMachineCard}
+        />
+      )}
+      {playerRevealPopup && (
+        <GamePopup
+          title={playerRevealPopup.title}
+          message={playerRevealPopup.message}
+          variant={playerRevealPopup.variant}
+          autoCloseMs={playerRevealPopup.autoCloseMs}
+          onClose={closePlayerRevealPopup}
         />
       )}
       {showMachineTurnPopup && (
