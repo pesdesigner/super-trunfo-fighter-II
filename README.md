@@ -1,8 +1,16 @@
 # Super Trunfo Fighter II
 
-**Versão:** 0.2.0
+**Versão:** 0.3.0
 
 Renovação em React do jogo Super Trunfo com personagens de Street Fighter.
+
+## Atualizações visuais — 0.3.0
+
+- Identidade visual renovada com logo do jogo, fundos para as telas inicial e de partida e tipografia arcade.
+- Cartas com animação de virada: a carta do jogador revela os atributos ao passar o mouse ou receber foco; a carta da máquina é revelada durante o fluxo da jogada.
+- O atributo comparado recebe destaque visual de vitória, derrota ou empate.
+- Imagens de personagens servidas localmente a partir de `public/images/cards/`.
+- Fundos para desktop e dispositivos móveis ficam em `public/images/backgrounds/`.
 
 ## Regras e novidades
 
@@ -18,11 +26,11 @@ Os popups apresentam o início e o resultado das rodadas, as cartas especiais e 
 
 ## Tecnologias
 
-- React
-- TypeScript
+- React e TypeScript
 - Vite
 - Vitest
 - ESLint
+- Google Fonts: Teko e Rajdhani (requer conexão para carregar as fontes)
 
 ## Organização do código
 

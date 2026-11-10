@@ -1,6 +1,40 @@
 .game-page {
+  position: relative;
+  isolation: isolate;
   flex: 1;
   width: min(100%, 1100px);
   margin: 0 auto;
   padding: clamp(1.25rem, 4vw, 3rem);
+}
+
+.game-page::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  background-image:
+    linear-gradient(rgb(23 24 33 / 48%), rgb(23 24 33 / 62%)),
+    url('/images/backgrounds/start-screen.jpg');
+  background-position: center;
+  background-size: cover;
+  content: '';
+}
+
+.game-page--playing::before {
+  background-image:
+    linear-gradient(rgb(23 24 33 / 55%), rgb(23 24 33 / 68%)),
+    url('/images/backgrounds/game-screen.jpg');
+}
+
+@media (max-width: 700px) {
+  .game-page--start::before {
+    background-image:
+      linear-gradient(rgb(23 24 33 / 48%), rgb(23 24 33 / 62%)),
+      url('/images/backgrounds/start-screen-mobile.jpg');
+  }
+
+  .game-page--playing::before {
+    background-image:
+      linear-gradient(rgb(23 24 33 / 55%), rgb(23 24 33 / 68%)),
+      url('/images/backgrounds/game-scrren-mobile.jpg');
+  }
 }

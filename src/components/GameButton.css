@@ -4,8 +4,10 @@
   border-radius: 0.6rem;
   background: #f2b84b;
   color: #171821;
-  font: inherit;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
   font-weight: 800;
+  letter-spacing: 0.04em;
   cursor: pointer;
 }
 
