@@ -1,0 +1,599 @@
+import { useCallback, useEffect, useState } from 'react'
+import type { CardAttribute } from '../types/card'
+import { MAX_ENERGY, type GameState } from '../game/game'
+import CharacterCard from './CharacterCard'
+import FightHealthBars from './FightHealthBars'
+import GameInfoPanel from './GameInfoPanel'
+import GameButton from './GameButton'
+import GamePopup from './GamePopup'
+import SpecialBars from './SpecialBars'
+import type { GamePopupVariant } from './GamePopup'
+import './GameScreen.css'
+
+interface PopupMessage {
+  title: string
+  message: string
+  autoCloseMs: number
+  variant?: GamePopupVariant
+  beforeMachineReveal?: boolean
+  matchOutcome?: 'player' | 'machine' | 'tie'
+  perfectWinner?: 'player' | 'machine'
+}
+
+function hasMachineCardRevealAnnouncement(game: GameState): boolean {
+  return game.machineCard.kind === 'wild' || game.machineCard.kind === 'special'
+}
+
+function createPopupSequence(game: GameState): PopupMessage[] {
+  if (game.phase === 'choosing' && game.lastResult === null) {
+    return [
+      {
+        title: `Round ${game.roundNumber} — Fight!`,
+        message: 'Prepare-se para a próxima batalha.',
+        autoCloseMs: 1800,
+      },
+      {
+        title: 'Sua vez!',
+        message: 'Escolha um atributo da sua carta.',
+        autoCloseMs: 2000,
+      },
+    ]
+  }
+
+  if (!game.lastResult) {
+    return []
+  }
+
+  const messages: PopupMessage[] = []
+
+  if (game.machineCard.kind === 'wild') {
+    messages.push({
+      title: 'Carta coringa!',
+      message: 'A máquina recebeu a carta coringa Akuma!',
+      autoCloseMs: 3000,
+      variant: 'wild',
+      beforeMachineReveal: true,
+    })
+  }
+
+  if (game.machineCard.kind === 'special') {
+    messages.push({
+      title: 'Kage entrou na arena!',
+      message: 'A máquina recebeu Kage após vencer três rodadas seguidas.',
+      autoCloseMs: 3000,
+      variant: 'special',
+      beforeMachineReveal: true,
+    })
+  }
+
+  if (game.lastResult.outcome === 'tie') {
+    messages.push({
+      title: 'Empate!',
+      message: 'Cada participante ganhou 1 ponto.',
+      autoCloseMs: 2800,
+    })
+  } else {
+    const playerWon = game.lastResult.outcome === 'player'
+    const winnerCard = playerWon ? game.playerCard : game.machineCard
+    const points = playerWon
+      ? game.lastResult.playerPoints
+      : game.lastResult.machinePoints
+    const isMachineWildWin = !playerWon && winnerCard.kind === 'wild'
+
+    messages.push({
+      title: playerWon ? 'Você venceu!' : 'Vitória da máquina!',
+      message: isMachineWildWin
+        ? 'A máquina liberou o poder de Akuma e conquistou 4 pontos!'
+        : playerWon && winnerCard.kind === 'wild'
+          ? 'Akuma dominou a rodada! Você ganhou 4 pontos!'
+          : `${playerWon ? 'Você venceu' : 'A máquina venceu'} a rodada e ganhou ${points} pontos.`,
+      autoCloseMs: 3000,
+      variant: isMachineWildWin ? 'machine-wild' : undefined,
+    })
+  }
+
+  if (game.machineKagePending) {
+    messages.push({
+      title: 'Kage conquistado!',
+      message: 'A máquina venceu três rodadas seguidas e ganhou Kage para a próxima rodada!',
+      autoCloseMs: 3000,
+      variant: 'special',
+    })
+  }
+
+  if (game.phase === 'finished') {
+    const outcome =
+      game.playerScore === game.machineScore
+        ? 'tie'
+        : game.playerScore > game.machineScore
+          ? 'victory'
+          : 'defeat'
+    const matchWinner =
+      outcome === 'victory' ? 'player' : outcome === 'defeat' ? 'machine' : null
+    const winnerEnergy =
+      matchWinner === 'player'
+        ? game.playerEnergy
+        : matchWinner === 'machine'
+          ? game.machineEnergy
+          : null
+
+    if (matchWinner && winnerEnergy === MAX_ENERGY) {
+      messages.push({
+        title: 'PERFECT',
+        message:
+          matchWinner === 'player'
+            ? 'Você venceu sem perder energia!'
+            : 'A máquina venceu sem perder energia!',
+        autoCloseMs: 2250,
+        variant: 'special',
+        perfectWinner: matchWinner,
+      })
+    }
+
+    messages.push({
+      title:
+        outcome === 'victory'
+          ? 'Você venceu a partida!'
+          : outcome === 'defeat'
+            ? 'Você perdeu!'
+            : 'Partida empatada!',
+      message:
+        `${outcome === 'victory'
+          ? 'Parabéns, campeão! A arena é sua.'
+          : outcome === 'defeat'
+            ? 'A máquina venceu desta vez. Tente novamente!'
+            : 'Os dois lutadores terminaram com a mesma pontuação.'} Placar final — Jogador ${game.playerScore} X ${game.machineScore} CPU`,
+      autoCloseMs: 1800,
+      variant: outcome,
+      matchOutcome:
+        outcome === 'victory'
+          ? 'player'
+          : outcome === 'defeat'
+            ? 'machine'
+            : 'tie',
+    })
+  }
+
+  return messages
+}
+
+interface PopupSequenceProps {
+  game: GameState
+  suspended: boolean
+  onComplete?: () => void
+  onBeforeMachineReveal?: () => void
+  onMatchWinnerAnnounced?: (winner: 'player' | 'machine') => void
+  onPerfectAnnounced?: (winner: 'player' | 'machine') => void
+}
+
+function PopupSequence({
+  game,
+  suspended,
+  onComplete,
+  onBeforeMachineReveal,
+  onMatchWinnerAnnounced,
+  onPerfectAnnounced,
+}: PopupSequenceProps) {
+  const popupSequence = createPopupSequence(game)
+  const [popupIndex, setPopupIndex] = useState(0)
+  const [waitingForMachineReveal, setWaitingForMachineReveal] = useState(false)
+  const activePopup = popupSequence[popupIndex]
+
+  useEffect(() => {
+    if (activePopup?.perfectWinner) {
+      onPerfectAnnounced?.(activePopup.perfectWinner)
+    }
+  }, [activePopup?.perfectWinner, onPerfectAnnounced])
+
+  useEffect(() => {
+    if (
+      activePopup?.matchOutcome === 'player' ||
+      activePopup?.matchOutcome === 'machine'
+    ) {
+      onMatchWinnerAnnounced?.(activePopup.matchOutcome)
+    }
+  }, [activePopup?.matchOutcome, onMatchWinnerAnnounced])
+
+  useEffect(() => {
+    if (!waitingForMachineReveal) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setWaitingForMachineReveal(false)
+      setPopupIndex((current) => current + 1)
+    }, 650)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [waitingForMachineReveal])
+
+  const closeActivePopup = useCallback(() => {
+    const nextPopup = popupSequence[popupIndex + 1]
+    const shouldRevealMachine =
+      activePopup?.beforeMachineReveal && !nextPopup?.beforeMachineReveal
+
+    if (shouldRevealMachine) {
+      onBeforeMachineReveal?.()
+      if (nextPopup) {
+        setWaitingForMachineReveal(true)
+        return
+      }
+    }
+
+    if (popupIndex === popupSequence.length - 1 && onComplete) {
+      onComplete()
+      return
+    }
+
+    setPopupIndex((current) => current + 1)
+  }, [
+    activePopup?.beforeMachineReveal,
+    onBeforeMachineReveal,
+    onComplete,
+    popupIndex,
+    popupSequence,
+  ])
+
+  if (!activePopup || suspended || waitingForMachineReveal) {
+    return null
+  }
+
+  return (
+    <GamePopup
+      title={activePopup.title}
+      message={activePopup.message}
+      variant={activePopup.variant}
+      className={activePopup.perfectWinner ? 'game-popup--perfect' : undefined}
+      autoCloseMs={activePopup.autoCloseMs}
+      onClose={closeActivePopup}
+    />
+  )
+}
+
+interface ContinueCountdownPopupProps {
+  onContinue: () => void
+  onTimeout: () => void
+}
+
+function ContinueCountdownPopup({
+  onContinue,
+  onTimeout,
+}: ContinueCountdownPopupProps) {
+  const [secondsRemaining, setSecondsRemaining] = useState(10)
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setSecondsRemaining((seconds) => Math.max(0, seconds - 1))
+    }, 1000)
+    const timeoutId = window.setTimeout(onTimeout, 10000)
+
+    return () => {
+      window.clearInterval(intervalId)
+      window.clearTimeout(timeoutId)
+    }
+  }, [onTimeout])
+
+  return (
+    <GamePopup
+      title="Continuar?"
+      message={`Nova partida em ${secondsRemaining} segundos...`}
+      actionLabel="Continuar"
+      onAction={onContinue}
+      onClose={onTimeout}
+    />
+  )
+}
+
+interface FinishedGameFlowProps {
+  game: GameState
+  onStartNewGame: () => void
+  onReturnToStart: () => void
+  onBeforeMachineReveal: () => void
+  onMatchWinnerAnnounced: (winner: 'player' | 'machine') => void
+  onPerfectAnnounced: (winner: 'player' | 'machine') => void
+}
+
+function FinishedGameFlow({
+  game,
+  onStartNewGame,
+  onReturnToStart,
+  onBeforeMachineReveal,
+  onMatchWinnerAnnounced,
+  onPerfectAnnounced,
+}: FinishedGameFlowProps) {
+  const [stage, setStage] = useState<'result' | 'continue' | 'game-over'>(
+    'result',
+  )
+  const showContinuePrompt = useCallback(() => {
+    setStage('continue')
+  }, [])
+  const showGameOver = useCallback(() => {
+    setStage('game-over')
+  }, [])
+
+  if (stage === 'result') {
+    return (
+      <PopupSequence
+        game={game}
+        suspended={false}
+        onComplete={showContinuePrompt}
+        onBeforeMachineReveal={onBeforeMachineReveal}
+        onMatchWinnerAnnounced={onMatchWinnerAnnounced}
+        onPerfectAnnounced={onPerfectAnnounced}
+      />
+    )
+  }
+
+  if (stage === 'continue') {
+    return (
+      <ContinueCountdownPopup
+        onContinue={onStartNewGame}
+        onTimeout={showGameOver}
+      />
+    )
+  }
+
+  return (
+    <GamePopup
+      title="GAME OVER"
+      message="Voltando para a tela inicial..."
+      autoCloseMs={2200}
+      onClose={onReturnToStart}
+    />
+  )
+}
+
+interface GameScreenProps {
+  game: GameState
+  selectedAttribute: CardAttribute | null
+  totalRounds: number
+  onSelectAttribute: (attribute: CardAttribute) => void
+  onConfirmPlay: () => void
+  onAdvanceRound: () => void
+  onStartNewGame: () => void
+  onReturnToStart: () => void
+}
+
+function GameScreen({
+  game,
+  selectedAttribute,
+  totalRounds,
+  onSelectAttribute,
+  onConfirmPlay,
+  onAdvanceRound,
+  onStartNewGame,
+  onReturnToStart,
+}: GameScreenProps) {
+  const [showMachineTurnPopup, setShowMachineTurnPopup] = useState(false)
+  const [playerRevealPopup, setPlayerRevealPopup] =
+    useState<PopupMessage | null>(null)
+  const [machineRevealed, setMachineRevealed] = useState(false)
+  const [revealedPlayerRound, setRevealedPlayerRound] = useState<number | null>(
+    null,
+  )
+  const [announcedMatchWinner, setAnnouncedMatchWinner] = useState<
+    'player' | 'machine' | null
+  >(null)
+  const [perfectWinner, setPerfectWinner] = useState<
+    'player' | 'machine' | null
+  >(null)
+
+  const announceMatchWinner = useCallback((winner: 'player' | 'machine') => {
+    setAnnouncedMatchWinner(winner)
+  }, [])
+  const announcePerfect = useCallback((winner: 'player' | 'machine') => {
+    setPerfectWinner(winner)
+  }, [])
+
+  const startMachineTurn = useCallback(() => {
+    setMachineRevealed(false)
+    setShowMachineTurnPopup(true)
+  }, [])
+
+  const finishMachineTurn = useCallback(() => {
+    setShowMachineTurnPopup(false)
+    if (!hasMachineCardRevealAnnouncement(game)) {
+      setMachineRevealed(true)
+    }
+    onConfirmPlay()
+  }, [game, onConfirmPlay])
+
+  const revealPlayerCard = useCallback(() => {
+    if (revealedPlayerRound === game.roundNumber) {
+      return
+    }
+
+    setRevealedPlayerRound(game.roundNumber)
+
+    if (game.playerCard.kind === 'wild') {
+      setPlayerRevealPopup({
+        title: 'Carta coringa!',
+        message: 'Você recebeu a carta coringa Akuma!',
+        autoCloseMs: 3000,
+        variant: 'wild',
+      })
+    } else if (game.playerCard.kind === 'special') {
+      setPlayerRevealPopup({
+        title: 'Kage conquistado!',
+        message: 'Você venceu três rodadas seguidas e ganhou Kage para a próxima rodada!',
+        autoCloseMs: 3000,
+        variant: 'special',
+      })
+    }
+  }, [game.playerCard, game.roundNumber, revealedPlayerRound])
+
+  const closePlayerRevealPopup = useCallback(() => {
+    setPlayerRevealPopup(null)
+  }, [])
+
+  const revealMachineCard = useCallback(() => {
+    setMachineRevealed(true)
+  }, [])
+
+  const advanceToNextRound = useCallback(() => {
+    setMachineRevealed(false)
+    onAdvanceRound()
+  }, [onAdvanceRound])
+
+  return (
+    <>
+      <FightHealthBars
+        playerEnergy={announcedMatchWinner === 'machine' ? 0 : game.playerEnergy}
+        machineEnergy={announcedMatchWinner === 'player' ? 0 : game.machineEnergy}
+        playerLostRound={
+          (game.phase === 'round-complete' || game.phase === 'finished') &&
+          game.lastResult?.outcome === 'machine'
+        }
+        machineLostRound={
+          (game.phase === 'round-complete' || game.phase === 'finished') &&
+          game.lastResult?.outcome === 'player'
+        }
+        perfectPlayer={perfectWinner === 'player'}
+        perfectMachine={perfectWinner === 'machine'}
+        timerActive={revealedPlayerRound !== null && game.phase !== 'finished'}
+      />
+
+      <section className="scoreboard" aria-label="Placar da partida">
+        <div className="scoreboard__player">
+          <span>Jogador</span>
+          <strong>{game.playerScore}</strong>
+        </div>
+
+        <p className="scoreboard__round">
+          Rodada {game.roundNumber} de {totalRounds}
+        </p>
+
+        <div className="scoreboard__machine">
+          <span>Máquina</span>
+          <strong>{game.machineScore}</strong>
+        </div>
+      </section>
+
+      <section className="battlefield" aria-label="Cartas da rodada">
+        <CharacterCard
+          card={game.playerCard}
+          owner="Sua carta"
+          backLabel="PLAYER"
+          flipped={revealedPlayerRound === game.roundNumber}
+          selectedAttribute={selectedAttribute}
+          resultAttribute={game.lastResult?.attribute}
+          attributeResult={
+            game.lastResult?.outcome === 'tie'
+              ? 'tie'
+              : game.lastResult?.outcome === 'player'
+                ? 'winner'
+                : game.lastResult?.outcome === 'machine'
+                  ? 'loser'
+                  : null
+          }
+          onSelectAttribute={
+            game.phase === 'choosing' ? onSelectAttribute : undefined
+          }
+          onReveal={
+            game.phase === 'choosing' ? revealPlayerCard : undefined
+          }
+        />
+
+        <img
+          className="battlefield__versus"
+          src="/images/vs.png"
+          alt="Versus"
+        />
+
+        <CharacterCard
+          card={game.machineCard}
+          owner="Máquina"
+          backLabel="CPU"
+          flipped={machineRevealed}
+          selectedAttribute={null}
+          resultAttribute={game.lastResult?.attribute}
+          attributeResult={
+            game.lastResult?.outcome === 'tie'
+              ? 'tie'
+              : game.lastResult?.outcome === 'machine'
+                ? 'winner'
+                : game.lastResult?.outcome === 'player'
+                  ? 'loser'
+                  : null
+          }
+        />
+      </section>
+
+      <SpecialBars
+        playerLevel={
+          game.playerKageUsed
+            ? 0
+            : Math.min(game.playerWinStreak, 3)
+        }
+        machineLevel={
+          game.machineKageUsed
+            ? 0
+            : Math.min(game.machineWinStreak, 3)
+        }
+        playerStreakBroken={game.playerStreakBroken}
+        machineStreakBroken={game.machineStreakBroken}
+      />
+
+      <div className="game-actions">
+        {game.phase === 'choosing' && (
+          <GameButton
+            onClick={startMachineTurn}
+            disabled={!selectedAttribute}
+          >
+            Confirmar jogada
+          </GameButton>
+        )}
+
+        {game.phase === 'round-complete' && (
+          <GameButton
+            className="game-button--next-round"
+            onClick={advanceToNextRound}
+          >
+            Próxima rodada
+          </GameButton>
+        )}
+
+      </div>
+
+      <GameInfoPanel className="game-info-panel--game" />
+
+      {game.phase === 'finished' ? (
+        <FinishedGameFlow
+          key={`${game.roundNumber}-${game.playerScore}-${game.machineScore}`}
+          game={game}
+          onStartNewGame={onStartNewGame}
+          onReturnToStart={onReturnToStart}
+          onBeforeMachineReveal={revealMachineCard}
+          onMatchWinnerAnnounced={announceMatchWinner}
+          onPerfectAnnounced={announcePerfect}
+        />
+      ) : (
+        <PopupSequence
+          key={`${game.roundNumber}-${game.phase}-${game.lastResult?.attribute ?? 'pending'}`}
+          game={game}
+          suspended={showMachineTurnPopup || playerRevealPopup !== null}
+          onBeforeMachineReveal={revealMachineCard}
+        />
+      )}
+      {playerRevealPopup && (
+        <GamePopup
+          title={playerRevealPopup.title}
+          message={playerRevealPopup.message}
+          variant={playerRevealPopup.variant}
+          autoCloseMs={playerRevealPopup.autoCloseMs}
+          onClose={closePlayerRevealPopup}
+        />
+      )}
+      {showMachineTurnPopup && (
+        <GamePopup
+          title="Vez da máquina!"
+          message="A máquina revela sua carta. Vamos ver quem venceu!"
+          autoCloseMs={1600}
+          onClose={finishMachineTurn}
+        />
+      )}
+    </>
+  )
+}
+
+export default GameScreen

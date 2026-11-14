@@ -49,4 +49,34 @@ describe('resolveRound', () => {
       machinePoints: 1,
     })
   })
+
+  it('dá 4 pontos ao jogador quando Akuma vence', () => {
+    const akumaCard: Card = {
+      ...playerCard,
+      id: 'akuma',
+      name: 'Akuma',
+      kind: 'wild',
+    }
+
+    expect(resolveRound(akumaCard, machineCard, 'attack')).toMatchObject({
+      outcome: 'player',
+      playerPoints: 4,
+      machinePoints: 0,
+    })
+  })
+
+  it('dá 4 pontos à máquina quando Akuma vence', () => {
+    const akumaCard: Card = {
+      ...machineCard,
+      id: 'akuma',
+      name: 'Akuma',
+      kind: 'wild',
+    }
+
+    expect(resolveRound(playerCard, akumaCard, 'defense')).toMatchObject({
+      outcome: 'machine',
+      playerPoints: 0,
+      machinePoints: 4,
+    })
+  })
 })

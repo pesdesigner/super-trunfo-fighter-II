@@ -1,0 +1,43 @@
+.game-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.game-header__eyebrow {
+  margin: 0.5rem 0 0;
+  color: #f2b84b;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.game-header__logo {
+  display: block;
+  width: min(100%, 32rem);
+  max-height: 10rem;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+.game-page--start .game-header__logo,
+.game-page--playing .game-header__logo {
+  width: min(85%, 27.2rem);
+  max-height: 8.5rem;
+}
+
+.game-page--start .game-header {
+  margin-bottom: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .game-header__logo {
+    max-height: 7rem;
+  }
+
+  .game-page--start .game-header__logo,
+  .game-page--playing .game-header__logo {
+    max-height: 5.95rem;
+  }
+}

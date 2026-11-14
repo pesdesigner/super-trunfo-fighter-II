@@ -4,99 +4,141 @@ export const cards = [
   {
     id: 'ryu',
     name: 'Ryu',
-    imageUrl:
-      'https://www.streetfighter.com/5/en-us/wp-content/uploads/2019/11/portrait-ryu-stats-2.jpg',
-    attributes: { attack: 80, defense: 60, magic: 90 },
+    kind: 'fighter',
+    imageUrl: '/images/cards/ryu.jpg',
+    attributes: { attack: 60, defense: 50, magic: 70 },
   },
   {
     id: 'chun-li',
     name: 'Chun-Li',
-    imageUrl:
-      'https://www.streetfighter.com/5/en-us/wp-content/uploads/2019/11/portrait-chun-li-2.jpg',
-    attributes: { attack: 70, defense: 65, magic: 85 },
+    kind: 'fighter',
+    imageUrl: '/images/cards/chun-li.jpg',
+    attributes: { attack: 60, defense: 40, magic: 70 },
   },
   {
     id: 'm-bison',
     name: 'M. Bison',
-    imageUrl:
-      'https://www.streetfighter.com/5/en-us/wp-content/uploads/2019/11/portrait-mbison-stats-2.jpg',
+    kind: 'fighter',
+    imageUrl: '/images/cards/m-bison.jpg',
     attributes: { attack: 90, defense: 60, magic: 80 },
   },
   {
     id: 'ken',
     name: 'Ken',
-    imageUrl:
-      'https://www.streetfighter.com/5/en-us/wp-content/uploads/2019/11/portrait-ken-2.jpg',
-    attributes: { attack: 70, defense: 52, magic: 90 },
+    kind: 'fighter',
+    imageUrl: '/images/cards/ken.jpg',
+    attributes: { attack: 70, defense: 50, magic: 60 },
   },
   {
     id: 'cammy',
     name: 'Cammy',
-    imageUrl:
-      'https://www.streetfighter.com/5/en-us/wp-content/uploads/2019/11/portrait-cammy-2.jpg',
-    attributes: { attack: 70, defense: 90, magic: 80 },
+    kind: 'fighter',
+    imageUrl: '/images/cards/cammy.jpg',
+    attributes: { attack: 70, defense: 50, magic: 40 },
   },
   {
     id: 'vega',
     name: 'Vega',
-    imageUrl:
-      'https://www.streetfighter.com/5/en-us/wp-content/uploads/2019/11/portrait-vega-2.jpg',
-    attributes: { attack: 75, defense: 90, magic: 60 },
+    kind: 'fighter',
+    imageUrl: '/images/cards/vega.jpg',
+    attributes: { attack: 70, defense: 40, magic: 40 },
   },
   {
     id: 'zangief',
     name: 'Zangief',
-    imageUrl:
-      'https://www.streetfighter.com/5/en-us/wp-content/uploads/2019/11/portrait-zangief-2.jpg',
-    attributes: { attack: 90, defense: 40, magic: 60 },
+    kind: 'fighter',
+    imageUrl: '/images/cards/zangief.jpg',
+    attributes: { attack: 90, defense: 60, magic: 30 },
   },
   {
     id: 'guile',
     name: 'Guile',
-    imageUrl:
-      'https://www.streetfighter.com/5/en-us/wp-content/uploads/2016/04/portrait-guile.jpg',
-    attributes: { attack: 80, defense: 50, magic: 70 },
+    kind: 'fighter',
+    imageUrl: '/images/cards/guile.jpg',
+    attributes: { attack: 70, defense: 80, magic: 70 },
   },
   {
     id: 'balrog',
     name: 'Balrog',
-    imageUrl:
-      'https://www.streetfighter.com/5/en-us/wp-content/uploads/2016/06/portrait-balrog.jpg',
-    attributes: { attack: 80, defense: 50, magic: 40 },
+    kind: 'fighter',
+    imageUrl: '/images/cards/balrog.jpg',
+    attributes: { attack: 80, defense: 70, magic: 30 },
   },
   {
     id: 'blanka',
     name: 'Blanka',
-    imageUrl:
-      'https://www.streetfighter.com/5/en-us/wp-content/uploads/2018/02/portrait-blanka.jpg',
-    attributes: { attack: 60, defense: 90, magic: 60 },
+    kind: 'fighter',
+    imageUrl: '/images/cards/blanka.jpg',
+    attributes: { attack: 70, defense: 60, magic: 70 },
   },
   {
     id: 'e-honda',
     name: 'E. Honda',
-    imageUrl:
-      'https://www.streetfighter.com/5/en-us/wp-content/uploads/2019/07/portrait-ehonda.jpg',
-    attributes: { attack: 80, defense: 60, magic: 40 },
+    kind: 'fighter',
+    imageUrl: '/images/cards/e-honda.jpg',
+    attributes: { attack: 70, defense: 60, magic: 30 },
   },
   {
     id: 'sagat',
     name: 'Sagat',
-    imageUrl:
-      'https://www.streetfighter.com/5/en-us/wp-content/uploads/2018/08/portrait-sagat.jpg',
-    attributes: { attack: 80, defense: 40, magic: 90 },
+    kind: 'fighter',
+    imageUrl: '/images/cards/sagat.jpg',
+    attributes: { attack: 80, defense: 60, magic: 60 },
   },
   {
     id: 'dhalsim',
     name: 'Dhalsim',
-    imageUrl:
-      'https://www.streetfighter.com/5/en-us/wp-content/uploads/2019/11/portrait-dhalsim-2.jpg',
-    attributes: { attack: 60, defense: 20, magic: 90 },
+    kind: 'fighter',
+    imageUrl: '/images/cards/dhalsim.jpg',
+    attributes: { attack: 60, defense: 40, magic: 80 },
   },
   {
-    id: 'akuma',
+    id: 'coringa',
     name: 'Akuma',
-    imageUrl:
-      'https://www.streetfighter.com/5/en-us/wp-content/uploads/2016/12/portrait-akuma.jpg',
-    attributes: { attack: 90, defense: 80, magic: 80 },
+    kind: 'wild',
+    imageUrl: '/images/cards/coringa.jpg',
+    attributes: { attack: 90, defense: 60, magic: 70 },
   },
+  {
+    id: 'sakura',
+    name: 'Sakura',
+    kind: 'fighter',
+    imageUrl: '/images/cards/sakura.jpg',
+    attributes: { attack: 50, defense: 40, magic: 60 },
+  },
+  {
+    id: 'especial',
+    name: 'Kage',
+    kind: 'special',
+    imageUrl: '/images/cards/especial.jpg',
+    attributes: { attack: 70, defense: 60, magic: 90 },
+  },
+    {
+    id: 'laura',
+    name: 'Laura',
+    kind: 'fighter',
+    imageUrl: '/images/cards/laura.jpg',
+    attributes: { attack: 60, defense: 50, magic: 30 },
+  },
+  {
+    id: 'juri',
+    name: 'Juri',
+    kind: 'fighter',
+    imageUrl: '/images/cards/juri.jpg',
+    attributes: { attack: 60, defense: 40, magic: 50 },
+  },
+    {
+    id: 'ibuki',
+    name: 'Ibuki',
+    kind: 'fighter',
+    imageUrl: '/images/cards/ibuki.jpg',
+    attributes: { attack: 60, defense: 30, magic: 40 },
+  },
+      {
+    id: 'rose',
+    name: 'Rose',
+    kind: 'fighter',
+    imageUrl: '/images/cards/rose.jpg',
+    attributes: { attack: 50, defense: 40, magic: 70 },
+  }
 ] satisfies Card[]

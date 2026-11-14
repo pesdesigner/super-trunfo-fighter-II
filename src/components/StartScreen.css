@@ -1,0 +1,39 @@
+.start-panel {
+  display: grid;
+  min-height: 0;
+  place-content: center;
+  justify-items: center;
+  gap: clamp(0.5rem, 1.3vh, 0.9rem);
+  text-align: center;
+}
+
+.start-panel__cards {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem 0.75rem;
+}
+
+.start-panel__cards > :nth-child(1) {
+  transform: rotate(-12deg) translateY(0.5rem);
+}
+
+.start-panel__cards > :nth-child(2) {
+  z-index: 1;
+  transform: translateY(-0.25rem) scale(1.05);
+}
+
+.start-panel__cards > :nth-child(3) {
+  transform: rotate(12deg) translateY(0.5rem);
+}
+
+.start-panel__start {
+  margin-top: -0.75rem;
+}
+
+.start-panel p {
+  max-width: 32rem;
+  color: #c8c9d1;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
