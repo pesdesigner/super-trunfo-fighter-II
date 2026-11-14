@@ -1,0 +1,43 @@
+.game-info-panel {
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+}
+
+.game-info-panel--game {
+  margin-top: 1rem;
+}
+
+.game-info-panel__button {
+  padding: 0.6rem 1rem;
+  border-color: #f2b84b;
+  background: rgb(23 24 33 / 80%);
+  color: #f2b84b;
+  font-size: 1.1rem;
+}
+
+.game-info-panel__button:hover:not(:disabled) {
+  background: #33303a;
+}
+
+.game-info-panel__about-button {
+  margin-top: -0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-color: transparent;
+  background: transparent;
+  color: #c8c9d1;
+  font-size: 0.95rem;
+}
+
+.game-info-panel__about-button:hover:not(:disabled) {
+  background: transparent;
+  color: #fff;
+  text-decoration: underline;
+}
+
+.game-info-panel__disclaimer {
+  margin: -0.25rem 0 0;
+  color: #a7a8b2;
+  font-size: 0.9rem;
+  text-align: center;
+}

@@ -1,0 +1,127 @@
+.fight-health-bars {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: end;
+  gap: 0.6rem;
+  margin-bottom: 0.65rem;
+}
+
+.fight-health-bars__side {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.4rem;
+}
+
+.fight-health-bars__thumb {
+  flex: 0 0 5rem;
+  width: 5rem;
+  aspect-ratio: 1;
+  border: 1px solid #d5d5db;
+  border-radius: 0.3rem;
+  object-fit: cover;
+}
+
+.fight-health-bars__track {
+  display: flex;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+  height: 1.5rem;
+  border: 1px solid #d5d5db;
+  border-radius: 0.25rem;
+  background: rgb(23 24 33 / 55%);
+}
+
+.fight-health-bars__track.is-losing-round {
+  animation: health-bar-loss-flash 750ms ease-in-out 3;
+}
+
+.fight-health-bars__track.is-perfect {
+  animation: health-bar-perfect-flash 500ms ease-in-out 5;
+}
+
+.fight-health-bars__side:last-child .fight-health-bars__track {
+  justify-content: flex-end;
+}
+
+.fight-health-bars__fill {
+  height: 100%;
+  background: #f2b84b;
+  transition: width 450ms ease-out;
+}
+
+.fight-health-bars__timer {
+  min-width: 4rem;
+  padding: 0;
+  background: transparent;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 4.05rem;
+  font-weight: 700;
+  line-height: 0.8;
+  text-align: center;
+}
+
+@keyframes health-bar-loss-flash {
+  0%,
+  100% {
+    border-color: #d5d5db;
+    box-shadow: none;
+  }
+
+  @keyframes health-bar-perfect-flash {
+    0%,
+    100% {
+      border-color: #d5d5db;
+      box-shadow: none;
+    }
+
+    50% {
+      border-color: #f2b84b;
+      box-shadow: 0 0 0.9rem rgb(242 184 75 / 95%);
+    }
+  }
+
+  50% {
+    border-color: #ff3b30;
+    box-shadow: 0 0 0.65rem rgb(255 59 48 / 80%);
+  }
+}
+
+@media (max-width: 480px) {
+  .fight-health-bars {
+    gap: 0.35rem;
+  }
+
+  .fight-health-bars__track {
+    height: 1.17rem;
+  }
+
+  .fight-health-bars__thumb {
+    flex-basis: 4rem;
+    width: 4rem;
+  }
+
+  .fight-health-bars__timer {
+    min-width: 3.3rem;
+    font-size: 3.3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fight-health-bars__fill {
+    transition: none;
+  }
+
+  .fight-health-bars__track.is-losing-round {
+    animation: none;
+    border-color: #ff3b30;
+  }
+
+  .fight-health-bars__track.is-perfect {
+    animation: none;
+    border-color: #f2b84b;
+    box-shadow: 0 0 0.7rem rgb(242 184 75 / 85%);
+  }
+}

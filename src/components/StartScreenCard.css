@@ -1,0 +1,64 @@
+.start-screen-card {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  width: clamp(5.04rem, 19.2vw, 8.8rem);
+  aspect-ratio: 3 / 4;
+  border: 2px solid #f2b84b;
+  border-radius: 0.8rem;
+  background-color: #222430;
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 0.75rem 1.5rem rgb(0 0 0 / 45%);
+  transition:
+    translate 220ms ease,
+    scale 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.start-screen-card__attributes {
+  display: grid;
+  width: 100%;
+  gap: 0.2rem;
+  padding: 1.5rem 0.4rem 0.45rem;
+  background: linear-gradient(transparent, rgb(13 14 20 / 95%) 35%);
+  color: #fff;
+  font-size: clamp(0.55rem, 2vw, 0.85rem);
+  font-weight: 700;
+  text-shadow: 0 1px 3px #000;
+}
+
+.start-screen-card__attributes > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+
+.start-screen-card__attributes strong {
+  color: #f2b84b;
+  font-size: 1.1em;
+}
+
+.start-panel__cards > .start-screen-card:hover {
+  z-index: 2;
+  translate: 0 -0.75rem;
+  scale: 1.08;
+  border-color: #fff1bd;
+  box-shadow:
+    0 0 0.6rem rgb(242 184 75 / 90%),
+    0 0 1.5rem rgb(242 184 75 / 65%),
+    0 1rem 2rem rgb(0 0 0 / 55%);
+}
+
+.start-screen-card + .start-screen-card {
+  margin-left: clamp(-1.8rem, -4.8vw, -0.8rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .start-screen-card {
+    transition: none;
+  }
+}
