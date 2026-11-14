@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import type { ReactNode } from 'react'
 import './GamePopup.css'
 
 export type GamePopupVariant =
@@ -12,10 +13,11 @@ export type GamePopupVariant =
 
 interface GamePopupProps {
   title: string
-  message: string
+  message: ReactNode
   onClose: () => void
   autoCloseMs?: number
   variant?: GamePopupVariant
+  className?: string
   actionLabel?: string
   onAction?: () => void
 }
@@ -26,6 +28,7 @@ function GamePopup({
   onClose,
   autoCloseMs,
   variant = 'default',
+  className,
   actionLabel,
   onAction,
 }: GamePopupProps) {
@@ -41,7 +44,7 @@ function GamePopup({
   return (
     <div className="game-popup-backdrop">
       <section
-        className={`game-popup game-popup--${variant}`}
+        className={`game-popup game-popup--${variant}${className ? ` ${className}` : ''}`}
         role="dialog"
         aria-modal="true"
         aria-live="assertive"
@@ -49,7 +52,9 @@ function GamePopup({
         aria-describedby="game-popup-message"
       >
         <h2 id="game-popup-title">{title}</h2>
-        <p id="game-popup-message">{message}</p>
+        <div className="game-popup__message" id="game-popup-message">
+          {typeof message === 'string' ? <p>{message}</p> : message}
+        </div>
         {actionLabel && onAction && (
           <button
             className="game-popup__action"

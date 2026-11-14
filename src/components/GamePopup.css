@@ -10,7 +10,9 @@
 }
 
 .game-popup {
-  width: min(100%, 28rem);
+  width: min(100%, 34rem);
+  max-height: min(90vh, 48rem);
+  overflow-y: auto;
   padding: 2rem;
   border: 2px solid #f2b84b;
   border-radius: 1rem;
@@ -19,6 +21,41 @@
   text-align: center;
   box-shadow: 0 0 2rem rgb(242 184 75 / 30%);
   animation: popup-enter 250ms ease-out;
+}
+
+.game-popup--instructions {
+  padding: 1.25rem 1.5rem;
+}
+
+.game-popup--instructions h2 {
+  margin-bottom: 0.4rem;
+}
+
+.game-popup--instructions .game-popup__instructions {
+  font-size: 0.98rem;
+  line-height: 1.3;
+}
+
+.game-popup--instructions .game-popup__instructions section + section {
+  margin-top: 0.45rem;
+}
+
+.game-popup--instructions .game-popup__instructions h3 {
+  font-size: 1.25rem;
+}
+
+.game-popup--instructions .game-popup__instructions section p,
+.game-popup--instructions .game-popup__instructions > p {
+  font-size: 0.92rem;
+}
+
+.game-popup--instructions .game-popup__instructions > p {
+  margin-top: 0.6rem;
+}
+
+.game-popup--instructions .game-popup__action {
+  margin-top: 0.8rem;
+  padding: 0.6rem 1.25rem;
 }
 
 .game-popup--wild {
@@ -53,6 +90,11 @@
   box-shadow: 0 0 2rem rgb(183 140 255 / 40%);
 }
 
+.game-popup--perfect {
+  border-color: #f2b84b;
+  animation: popup-enter 250ms ease-out, perfect-border-flash 450ms ease-in-out 5;
+}
+
 .game-popup h2 {
   margin: 0 0 0.75rem;
   color: #f2b84b;
@@ -81,12 +123,75 @@
   color: #c9a9ff;
 }
 
-.game-popup p {
-  margin: 0;
+.game-popup--perfect h2 {
+  color: #ffe08a;
+}
+
+.game-popup__message {
   color: #e2e2e8;
   font-size: 1.2rem;
   font-weight: 500;
   line-height: 1.5;
+}
+
+.game-popup__message > p {
+  margin: 0;
+}
+
+.game-popup__instructions {
+  text-align: left;
+  font-size: 1.05rem;
+}
+
+.game-popup__instructions section + section {
+  margin-top: 0.75rem;
+}
+
+.game-popup__instructions h3 {
+  margin: 0;
+  color: #f2b84b;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  line-height: 1.1;
+}
+
+.game-popup__instructions section p {
+  margin: 0.15rem 0 0;
+}
+
+.game-popup__instructions section p,
+.game-popup__instructions > p {
+  font-size: 1rem;
+}
+
+.game-popup__instructions > p {
+  margin: 1rem 0 0;
+  text-align: center;
+  font-weight: 700;
+}
+
+.game-popup__instructions section {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.game-popup__instructions strong {
+  color: #f2b84b;
+}
+
+.game-popup__about {
+  display: grid;
+  gap: 0.75rem;
+  font-size: 1.05rem;
+  text-align: left;
+}
+
+.game-popup__about p {
+  margin: 0;
+}
+
+.game-popup__about strong {
+  color: #f2b84b;
 }
 
 .game-popup__action {
@@ -138,9 +243,22 @@
   }
 }
 
+@keyframes perfect-border-flash {
+  50% {
+    border-color: #fff;
+    box-shadow: 0 0 2.5rem rgb(242 184 75 / 95%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .game-popup-backdrop,
   .game-popup {
     animation: none;
+  }
+
+  .game-popup--perfect {
+    animation: none;
+    border-color: #ffe08a;
+    box-shadow: 0 0 2rem rgb(242 184 75 / 80%);
   }
 }

@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { CardAttribute } from '../types/card'
-import type { GameState } from '../game/game'
+import { MAX_ENERGY, type GameState } from '../game/game'
 import CharacterCard from './CharacterCard'
+import FightHealthBars from './FightHealthBars'
+import GameInfoPanel from './GameInfoPanel'
 import GameButton from './GameButton'
 import GamePopup from './GamePopup'
+import SpecialBars from './SpecialBars'
 import type { GamePopupVariant } from './GamePopup'
 import './GameScreen.css'
 
@@ -13,6 +16,8 @@ interface PopupMessage {
   autoCloseMs: number
   variant?: GamePopupVariant
   beforeMachineReveal?: boolean
+  matchOutcome?: 'player' | 'machine' | 'tie'
+  perfectWinner?: 'player' | 'machine'
 }
 
 function hasMachineCardRevealAnnouncement(game: GameState): boolean {
@@ -103,6 +108,27 @@ function createPopupSequence(game: GameState): PopupMessage[] {
         : game.playerScore > game.machineScore
           ? 'victory'
           : 'defeat'
+    const matchWinner =
+      outcome === 'victory' ? 'player' : outcome === 'defeat' ? 'machine' : null
+    const winnerEnergy =
+      matchWinner === 'player'
+        ? game.playerEnergy
+        : matchWinner === 'machine'
+          ? game.machineEnergy
+          : null
+
+    if (matchWinner && winnerEnergy === MAX_ENERGY) {
+      messages.push({
+        title: 'PERFECT',
+        message:
+          matchWinner === 'player'
+            ? 'Você venceu sem perder energia!'
+            : 'A máquina venceu sem perder energia!',
+        autoCloseMs: 2250,
+        variant: 'special',
+        perfectWinner: matchWinner,
+      })
+    }
 
     messages.push({
       title:
@@ -119,6 +145,12 @@ function createPopupSequence(game: GameState): PopupMessage[] {
             : 'Os dois lutadores terminaram com a mesma pontuação.'} Placar final — Jogador ${game.playerScore} X ${game.machineScore} CPU`,
       autoCloseMs: 1800,
       variant: outcome,
+      matchOutcome:
+        outcome === 'victory'
+          ? 'player'
+          : outcome === 'defeat'
+            ? 'machine'
+            : 'tie',
     })
   }
 
@@ -130,6 +162,8 @@ interface PopupSequenceProps {
   suspended: boolean
   onComplete?: () => void
   onBeforeMachineReveal?: () => void
+  onMatchWinnerAnnounced?: (winner: 'player' | 'machine') => void
+  onPerfectAnnounced?: (winner: 'player' | 'machine') => void
 }
 
 function PopupSequence({
@@ -137,11 +171,28 @@ function PopupSequence({
   suspended,
   onComplete,
   onBeforeMachineReveal,
+  onMatchWinnerAnnounced,
+  onPerfectAnnounced,
 }: PopupSequenceProps) {
   const popupSequence = createPopupSequence(game)
   const [popupIndex, setPopupIndex] = useState(0)
   const [waitingForMachineReveal, setWaitingForMachineReveal] = useState(false)
   const activePopup = popupSequence[popupIndex]
+
+  useEffect(() => {
+    if (activePopup?.perfectWinner) {
+      onPerfectAnnounced?.(activePopup.perfectWinner)
+    }
+  }, [activePopup?.perfectWinner, onPerfectAnnounced])
+
+  useEffect(() => {
+    if (
+      activePopup?.matchOutcome === 'player' ||
+      activePopup?.matchOutcome === 'machine'
+    ) {
+      onMatchWinnerAnnounced?.(activePopup.matchOutcome)
+    }
+  }, [activePopup?.matchOutcome, onMatchWinnerAnnounced])
 
   useEffect(() => {
     if (!waitingForMachineReveal) {
@@ -192,6 +243,7 @@ function PopupSequence({
       title={activePopup.title}
       message={activePopup.message}
       variant={activePopup.variant}
+      className={activePopup.perfectWinner ? 'game-popup--perfect' : undefined}
       autoCloseMs={activePopup.autoCloseMs}
       onClose={closeActivePopup}
     />
@@ -237,6 +289,8 @@ interface FinishedGameFlowProps {
   onStartNewGame: () => void
   onReturnToStart: () => void
   onBeforeMachineReveal: () => void
+  onMatchWinnerAnnounced: (winner: 'player' | 'machine') => void
+  onPerfectAnnounced: (winner: 'player' | 'machine') => void
 }
 
 function FinishedGameFlow({
@@ -244,6 +298,8 @@ function FinishedGameFlow({
   onStartNewGame,
   onReturnToStart,
   onBeforeMachineReveal,
+  onMatchWinnerAnnounced,
+  onPerfectAnnounced,
 }: FinishedGameFlowProps) {
   const [stage, setStage] = useState<'result' | 'continue' | 'game-over'>(
     'result',
@@ -262,6 +318,8 @@ function FinishedGameFlow({
         suspended={false}
         onComplete={showContinuePrompt}
         onBeforeMachineReveal={onBeforeMachineReveal}
+        onMatchWinnerAnnounced={onMatchWinnerAnnounced}
+        onPerfectAnnounced={onPerfectAnnounced}
       />
     )
   }
@@ -313,6 +371,19 @@ function GameScreen({
   const [revealedPlayerRound, setRevealedPlayerRound] = useState<number | null>(
     null,
   )
+  const [announcedMatchWinner, setAnnouncedMatchWinner] = useState<
+    'player' | 'machine' | null
+  >(null)
+  const [perfectWinner, setPerfectWinner] = useState<
+    'player' | 'machine' | null
+  >(null)
+
+  const announceMatchWinner = useCallback((winner: 'player' | 'machine') => {
+    setAnnouncedMatchWinner(winner)
+  }, [])
+  const announcePerfect = useCallback((winner: 'player' | 'machine') => {
+    setPerfectWinner(winner)
+  }, [])
 
   const startMachineTurn = useCallback(() => {
     setMachineRevealed(false)
@@ -366,6 +437,22 @@ function GameScreen({
 
   return (
     <>
+      <FightHealthBars
+        playerEnergy={announcedMatchWinner === 'machine' ? 0 : game.playerEnergy}
+        machineEnergy={announcedMatchWinner === 'player' ? 0 : game.machineEnergy}
+        playerLostRound={
+          (game.phase === 'round-complete' || game.phase === 'finished') &&
+          game.lastResult?.outcome === 'machine'
+        }
+        machineLostRound={
+          (game.phase === 'round-complete' || game.phase === 'finished') &&
+          game.lastResult?.outcome === 'player'
+        }
+        perfectPlayer={perfectWinner === 'player'}
+        perfectMachine={perfectWinner === 'machine'}
+        timerActive={revealedPlayerRound !== null && game.phase !== 'finished'}
+      />
+
       <section className="scoreboard" aria-label="Placar da partida">
         <div className="scoreboard__player">
           <span>Jogador</span>
@@ -407,9 +494,11 @@ function GameScreen({
           }
         />
 
-        <p className="battlefield__versus" aria-hidden="true">
-          VS
-        </p>
+        <img
+          className="battlefield__versus"
+          src="/images/vs.png"
+          alt="Versus"
+        />
 
         <CharacterCard
           card={game.machineCard}
@@ -429,6 +518,21 @@ function GameScreen({
           }
         />
       </section>
+
+      <SpecialBars
+        playerLevel={
+          game.playerKageUsed
+            ? 0
+            : Math.min(game.playerWinStreak, 3)
+        }
+        machineLevel={
+          game.machineKageUsed
+            ? 0
+            : Math.min(game.machineWinStreak, 3)
+        }
+        playerStreakBroken={game.playerStreakBroken}
+        machineStreakBroken={game.machineStreakBroken}
+      />
 
       <div className="game-actions">
         {game.phase === 'choosing' && (
@@ -451,6 +555,8 @@ function GameScreen({
 
       </div>
 
+      <GameInfoPanel className="game-info-panel--game" />
+
       {game.phase === 'finished' ? (
         <FinishedGameFlow
           key={`${game.roundNumber}-${game.playerScore}-${game.machineScore}`}
@@ -458,6 +564,8 @@ function GameScreen({
           onStartNewGame={onStartNewGame}
           onReturnToStart={onReturnToStart}
           onBeforeMachineReveal={revealMachineCard}
+          onMatchWinnerAnnounced={announceMatchWinner}
+          onPerfectAnnounced={announcePerfect}
         />
       ) : (
         <PopupSequence

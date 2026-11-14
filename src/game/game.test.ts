@@ -99,6 +99,8 @@ describe('createGame', () => {
     expect(game.machineCard.id).toBe('ken')
     expect(game.remainingDeck).toHaveLength(2)
     expect(game.roundNumber).toBe(1)
+    expect(game.playerEnergy).toBe(100)
+    expect(game.machineEnergy).toBe(100)
     expect(game.phase).toBe('choosing')
   })
 
@@ -145,6 +147,8 @@ describe('playRound e startNextRound', () => {
 
     expect(firstResult.playerScore).toBe(3)
     expect(firstResult.machineScore).toBe(0)
+    expect(firstResult.playerEnergy).toBe(100)
+    expect(firstResult.machineEnergy).toBe(50)
     expect(firstResult.phase).toBe('round-complete')
 
     const secondGame = startNextRound(firstResult)
@@ -158,7 +162,44 @@ describe('playRound e startNextRound', () => {
 
     expect(finalGame.playerScore).toBe(3)
     expect(finalGame.machineScore).toBe(3)
+    expect(finalGame.playerEnergy).toBe(50)
+    expect(finalGame.machineEnergy).toBe(50)
     expect(finalGame.phase).toBe('finished')
+  })
+
+  it('mantém a energia dos dois lados em caso de empate', () => {
+    const game = playRound(createTestGame(), 'magic')
+
+    expect(game.lastResult?.outcome).toBe('tie')
+    expect(game.playerEnergy).toBe(100)
+    expect(game.machineEnergy).toBe(100)
+  })
+
+  it('zera o medidor de sequência perdida e limpa o aviso na próxima rodada', () => {
+    const cards = createKageTestDeck(
+      [90, 10, 90],
+      [10, 90, 10],
+    )
+    let game = createGame(cards, () => 0.999999)
+
+    if (!game) {
+      throw new Error('Não foi possível criar a partida de teste.')
+    }
+
+    game = playRound(game, 'attack')
+    expect(game.playerWinStreak).toBe(1)
+    expect(game.playerStreakBroken).toBe(false)
+
+    game = startNextRound(game)
+    game = playRound(game, 'attack')
+
+    expect(game.playerWinStreak).toBe(0)
+    expect(game.playerStreakBroken).toBe(true)
+    expect(game.machineStreakBroken).toBe(false)
+
+    game = startNextRound(game)
+    expect(game.playerStreakBroken).toBe(false)
+    expect(game.machineStreakBroken).toBe(false)
   })
 
   it('não pontua novamente após a rodada ser resolvida', () => {

@@ -21,8 +21,23 @@
   object-fit: contain;
 }
 
+.game-page--start .game-header__logo,
+.game-page--playing .game-header__logo {
+  width: min(85%, 27.2rem);
+  max-height: 8.5rem;
+}
+
+.game-page--start .game-header {
+  margin-bottom: 0.75rem;
+}
+
 @media (max-width: 480px) {
   .game-header__logo {
     max-height: 7rem;
+  }
+
+  .game-page--start .game-header__logo,
+  .game-page--playing .game-header__logo {
+    max-height: 5.95rem;
   }
 }

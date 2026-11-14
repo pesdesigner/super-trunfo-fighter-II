@@ -5,6 +5,7 @@ import { resolveRound, type RoundResult } from './resolveRound'
 export type GamePhase = 'choosing' | 'round-complete' | 'finished'
 
 export const MAX_ROUNDS = 7
+export const MAX_ENERGY = 100
 
 export interface GameState {
   playerCard: Card
@@ -15,8 +16,12 @@ export interface GameState {
   totalRounds: number
   playerScore: number
   machineScore: number
+  playerEnergy: number
+  machineEnergy: number
   playerWinStreak: number
   machineWinStreak: number
+  playerStreakBroken: boolean
+  machineStreakBroken: boolean
   playerKagePending: boolean
   machineKagePending: boolean
   playerKageUsed: boolean
@@ -47,8 +52,12 @@ export function createGame(
     totalRounds,
     playerScore: 0,
     machineScore: 0,
+    playerEnergy: MAX_ENERGY,
+    machineEnergy: MAX_ENERGY,
     playerWinStreak: 0,
     machineWinStreak: 0,
+    playerStreakBroken: false,
+    machineStreakBroken: false,
     playerKagePending: false,
     machineKagePending: false,
     playerKageUsed: false,
@@ -78,13 +87,26 @@ export function playRound(
     result.outcome === 'machine' ? game.machineWinStreak + 1 : 0
   const hasNextRound = game.roundNumber < game.totalRounds
   const canAwardKage = hasNextRound && game.kageCard !== null
+  const energyLossPerRound = MAX_ENERGY / game.totalRounds
 
   return {
     ...game,
     playerScore: game.playerScore + result.playerPoints,
     machineScore: game.machineScore + result.machinePoints,
+    playerEnergy:
+      result.outcome === 'machine'
+        ? Math.max(0, game.playerEnergy - energyLossPerRound)
+        : game.playerEnergy,
+    machineEnergy:
+      result.outcome === 'player'
+        ? Math.max(0, game.machineEnergy - energyLossPerRound)
+        : game.machineEnergy,
     playerWinStreak,
     machineWinStreak,
+    playerStreakBroken:
+      game.playerWinStreak > 0 && result.outcome !== 'player',
+    machineStreakBroken:
+      game.machineWinStreak > 0 && result.outcome !== 'machine',
     playerKagePending:
       game.playerKagePending ||
       (canAwardKage && !game.playerKageUsed && playerWinStreak >= 3),
@@ -127,6 +149,8 @@ export function startNextRound(game: GameState): GameState {
     roundNumber: game.roundNumber + 1,
     playerKagePending: false,
     machineKagePending: false,
+    playerStreakBroken: false,
+    machineStreakBroken: false,
     playerKageUsed: game.playerKageUsed || playerReceivesKage,
     machineKageUsed: game.machineKageUsed || machineReceivesKage,
     phase: 'choosing',

@@ -1,8 +1,16 @@
 # Super Trunfo Fighter II
 
-**Versão:** 0.3.0
+**Versão:** 0.4.0
 
 Renovação em React do jogo Super Trunfo com personagens de Street Fighter.
+
+## Atualizações — 0.4.0
+
+- Tela inicial com cartas em destaque, instruções do jogo e aviso de projeto de fã.
+- Interface de combate com barras de energia, cronômetro e retratos dos lutadores.
+- Medidores de sequência para acompanhar o progresso da habilidade especial Kage.
+- Destaques visuais para derrotas de rodada, sequência especial e resultado **PERFECT**.
+- Acesso a “Como jogar” e “Sobre o projeto” também durante a partida.
 
 ## Atualizações visuais — 0.3.0
 
