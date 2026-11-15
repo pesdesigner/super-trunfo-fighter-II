@@ -1,12 +1,5 @@
 import './SpecialBars.css'
 
-interface SpecialBarsProps {
-  playerLevel: number
-  machineLevel: number
-  playerStreakBroken: boolean
-  machineStreakBroken: boolean
-}
-
 interface SpecialMeterProps {
   label: string
   level: number
@@ -14,7 +7,7 @@ interface SpecialMeterProps {
   counterAfterLabel?: boolean
 }
 
-function SpecialMeter({
+export function SpecialMeter({
   label,
   level,
   streakBroken,
@@ -54,28 +47,3 @@ function SpecialMeter({
     </div>
   )
 }
-
-function SpecialBars({
-  playerLevel,
-  machineLevel,
-  playerStreakBroken,
-  machineStreakBroken,
-}: SpecialBarsProps) {
-  return (
-    <section className="special-bars" aria-label="Medidores da carta especial">
-      <SpecialMeter
-        label="Especial · Jogador"
-        level={playerLevel}
-        streakBroken={playerStreakBroken}
-      />
-      <SpecialMeter
-        label="Especial · Máquina"
-        level={machineLevel}
-        streakBroken={machineStreakBroken}
-        counterAfterLabel
-      />
-    </section>
-  )
-}
-
-export default SpecialBars

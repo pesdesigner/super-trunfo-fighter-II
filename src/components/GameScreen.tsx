@@ -3,10 +3,10 @@ import type { CardAttribute } from '../types/card'
 import { MAX_ENERGY, type GameState } from '../game/game'
 import CharacterCard from './CharacterCard'
 import FightHealthBars from './FightHealthBars'
-import GameInfoPanel from './GameInfoPanel'
 import GameButton from './GameButton'
+import GameMenu from './GameMenu'
 import GamePopup from './GamePopup'
-import SpecialBars from './SpecialBars'
+import { SpecialMeter } from './SpecialBars'
 import type { GamePopupVariant } from './GamePopup'
 import './GameScreen.css'
 
@@ -346,7 +346,6 @@ function FinishedGameFlow({
 interface GameScreenProps {
   game: GameState
   selectedAttribute: CardAttribute | null
-  totalRounds: number
   onSelectAttribute: (attribute: CardAttribute) => void
   onConfirmPlay: () => void
   onAdvanceRound: () => void
@@ -357,7 +356,6 @@ interface GameScreenProps {
 function GameScreen({
   game,
   selectedAttribute,
-  totalRounds,
   onSelectAttribute,
   onConfirmPlay,
   onAdvanceRound,
@@ -435,6 +433,13 @@ function GameScreen({
     onAdvanceRound()
   }, [onAdvanceRound])
 
+  const playerLevel = game.playerKageUsed
+    ? 0
+    : Math.min(game.playerWinStreak, 3)
+  const machineLevel = game.machineKageUsed
+    ? 0
+    : Math.min(game.machineWinStreak, 3)
+
   return (
     <>
       <FightHealthBars
@@ -459,8 +464,14 @@ function GameScreen({
           <strong>{game.playerScore}</strong>
         </div>
 
+        <img
+          className="scoreboard__versus"
+          src="/images/vs.png"
+          alt="Versus"
+        />
+
         <p className="scoreboard__round">
-          Rodada {game.roundNumber} de {totalRounds}
+          ROUND {game.roundNumber}
         </p>
 
         <div className="scoreboard__machine">
@@ -470,29 +481,36 @@ function GameScreen({
       </section>
 
       <section className="battlefield" aria-label="Cartas da rodada">
-        <CharacterCard
-          card={game.playerCard}
-          owner="Sua carta"
-          backLabel="PLAYER"
-          flipped={revealedPlayerRound === game.roundNumber}
-          selectedAttribute={selectedAttribute}
-          resultAttribute={game.lastResult?.attribute}
-          attributeResult={
-            game.lastResult?.outcome === 'tie'
-              ? 'tie'
-              : game.lastResult?.outcome === 'player'
-                ? 'winner'
-                : game.lastResult?.outcome === 'machine'
-                  ? 'loser'
-                  : null
-          }
-          onSelectAttribute={
-            game.phase === 'choosing' ? onSelectAttribute : undefined
-          }
-          onReveal={
-            game.phase === 'choosing' ? revealPlayerCard : undefined
-          }
-        />
+        <div className="battlefield__fighter">
+          <CharacterCard
+            card={game.playerCard}
+            owner="Sua carta"
+            backLabel="PLAYER"
+            flipped={revealedPlayerRound === game.roundNumber}
+            selectedAttribute={selectedAttribute}
+            resultAttribute={game.lastResult?.attribute}
+            attributeResult={
+              game.lastResult?.outcome === 'tie'
+                ? 'tie'
+                : game.lastResult?.outcome === 'player'
+                  ? 'winner'
+                  : game.lastResult?.outcome === 'machine'
+                    ? 'loser'
+                    : null
+            }
+            onSelectAttribute={
+              game.phase === 'choosing' ? onSelectAttribute : undefined
+            }
+            onReveal={
+              game.phase === 'choosing' ? revealPlayerCard : undefined
+            }
+          />
+          <SpecialMeter
+            label="Especial · Jogador"
+            level={playerLevel}
+            streakBroken={game.playerStreakBroken}
+          />
+        </div>
 
         <img
           className="battlefield__versus"
@@ -500,39 +518,32 @@ function GameScreen({
           alt="Versus"
         />
 
-        <CharacterCard
-          card={game.machineCard}
-          owner="Máquina"
-          backLabel="CPU"
-          flipped={machineRevealed}
-          selectedAttribute={null}
-          resultAttribute={game.lastResult?.attribute}
-          attributeResult={
-            game.lastResult?.outcome === 'tie'
-              ? 'tie'
-              : game.lastResult?.outcome === 'machine'
-                ? 'winner'
-                : game.lastResult?.outcome === 'player'
-                  ? 'loser'
-                  : null
-          }
-        />
+        <div className="battlefield__fighter">
+          <CharacterCard
+            card={game.machineCard}
+            owner="Máquina"
+            backLabel="CPU"
+            flipped={machineRevealed}
+            selectedAttribute={null}
+            resultAttribute={game.lastResult?.attribute}
+            attributeResult={
+              game.lastResult?.outcome === 'tie'
+                ? 'tie'
+                : game.lastResult?.outcome === 'machine'
+                  ? 'winner'
+                  : game.lastResult?.outcome === 'player'
+                    ? 'loser'
+                    : null
+            }
+          />
+          <SpecialMeter
+            label="Especial · Máquina"
+            level={machineLevel}
+            streakBroken={game.machineStreakBroken}
+            counterAfterLabel
+          />
+        </div>
       </section>
-
-      <SpecialBars
-        playerLevel={
-          game.playerKageUsed
-            ? 0
-            : Math.min(game.playerWinStreak, 3)
-        }
-        machineLevel={
-          game.machineKageUsed
-            ? 0
-            : Math.min(game.machineWinStreak, 3)
-        }
-        playerStreakBroken={game.playerStreakBroken}
-        machineStreakBroken={game.machineStreakBroken}
-      />
 
       <div className="game-actions">
         {game.phase === 'choosing' && (
@@ -555,7 +566,9 @@ function GameScreen({
 
       </div>
 
-      <GameInfoPanel className="game-info-panel--game" />
+      <p className="game-info-panel__disclaimer game-screen__disclaimer">
+        Projeto de fã, não oficial e sem vínculo com a Capcom.
+      </p>
 
       {game.phase === 'finished' ? (
         <FinishedGameFlow
@@ -592,6 +605,7 @@ function GameScreen({
           onClose={finishMachineTurn}
         />
       )}
+      <GameMenu onReturnToStart={onReturnToStart} />
     </>
   )
 }

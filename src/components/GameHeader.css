@@ -21,10 +21,27 @@
   object-fit: contain;
 }
 
-.game-page--start .game-header__logo,
-.game-page--playing .game-header__logo {
+.game-page--start .game-header__logo {
   width: min(85%, 27.2rem);
   max-height: 8.5rem;
+}
+
+.game-page--playing .game-header__logo {
+  width: min(39.78%, 12.7296rem);
+  max-height: 3.978rem;
+}
+
+.game-page--playing .game-header {
+  margin-bottom: 0.2rem;
+}
+
+.game-page--playing .game-header h1 {
+  margin-top: 0.37rem;
+  margin-bottom: 0;
+}
+
+.game-page--playing .game-header__eyebrow {
+  display: none;
 }
 
 .game-page--start .game-header {
@@ -36,8 +53,11 @@
     max-height: 7rem;
   }
 
-  .game-page--start .game-header__logo,
-  .game-page--playing .game-header__logo {
+  .game-page--start .game-header__logo {
     max-height: 5.95rem;
+  }
+
+  .game-page--playing .game-header__logo {
+    max-height: 2.7846rem;
   }
 }

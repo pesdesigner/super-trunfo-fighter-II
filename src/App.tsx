@@ -10,7 +10,6 @@ function App() {
     game,
     matchId,
     selectedAttribute,
-    totalRounds,
     startMatch,
     returnToStart,
     selectAttribute,
@@ -30,7 +29,6 @@ function App() {
             key={matchId}
             game={game}
             selectedAttribute={selectedAttribute}
-            totalRounds={totalRounds}
             onSelectAttribute={selectAttribute}
             onConfirmPlay={confirmPlay}
             onAdvanceRound={advanceRound}

@@ -34,6 +34,10 @@
   justify-self: end;
 }
 
+.scoreboard__versus {
+  display: none;
+}
+
 .scoreboard__round {
   margin: 0;
   color: #c8c9d1;
@@ -51,9 +55,16 @@
   gap: 1.05rem;
 }
 
-.battlefield > .fighter-card {
-  width: 80%;
-  justify-self: center;
+.battlefield__fighter {
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+}
+
+.battlefield__fighter > .fighter-card {
+  width: 70.5%;
+  aspect-ratio: 5 / 7;
+  zoom: 0.5;
 }
 
 .battlefield__versus {
@@ -61,6 +72,7 @@
   width: clamp(5rem, 19vw, 12rem);
   height: auto;
   object-fit: contain;
+  transform: translateY(-2.55rem);
 }
 
 .game-actions {
@@ -69,26 +81,49 @@
   margin-top: 1.5rem;
 }
 
+.game-screen__disclaimer {
+  margin-top: 1rem;
+}
+
 @media (max-width: 700px) {
   .battlefield {
     grid-template-columns: 1fr;
   }
 
-  .battlefield > .fighter-card {
+  .battlefield__fighter > .fighter-card {
     width: 70%;
   }
 
   .battlefield__versus {
-    margin: 0;
-    text-align: center;
+    display: none;
   }
 
   .scoreboard {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  }
+
+  .scoreboard__player {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .scoreboard__versus {
+    display: block;
+    grid-column: 2;
+    grid-row: 1;
+    width: clamp(2.5rem, 10vw, 3rem);
+    height: auto;
+    object-fit: contain;
+    justify-self: center;
+  }
+
+  .scoreboard__machine {
+    grid-column: 3;
+    grid-row: 1;
   }
 
   .scoreboard__round {
     grid-column: 1 / -1;
-    grid-row: 1;
+    grid-row: 2;
   }
 }

@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { cards } from '../data/cards'
 import {
   createGame,
-  MAX_ROUNDS,
   playRound,
   startNextRound,
 } from '../game/game'
@@ -55,7 +54,6 @@ function useGame() {
     game,
     matchId,
     selectedAttribute,
-    totalRounds: game?.totalRounds ?? MAX_ROUNDS,
     startMatch,
     returnToStart,
     selectAttribute,
